@@ -28,33 +28,33 @@
  *  OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#import "SCEvents.h"
+#import "SCFileSystemWatcher.h"
 #import "SCEvent.h"
 #import "pthread.h"
 
 /**
  * Private API
  */
-@interface SCEvents ()
+@interface SCFileSystemWatcher ()
 
-static FSEventStreamRef _create_events_stream(SCEvents *watcher,
+static FSEventStreamRef create_events_stream(SCFileSystemWatcher *watcher,
 											  CFArrayRef paths,
                                               FSEventStreamCreateFlags createFlags,
 											  CFTimeInterval latency,
 											  FSEventStreamEventId sinceWhen);
 
-static void _events_callback(ConstFSEventStreamRef streamRef, 
+static void events_callback(ConstFSEventStreamRef streamRef,
 							 void *clientCallBackInfo, 
 							 size_t numEvents, 
 							 void *eventPaths, 
 							 const FSEventStreamEventFlags eventFlags[], 
 							 const FSEventStreamEventId eventIds[]);
 
-static CFStringRef _strip_trailing_slash(CFStringRef string);
+//static CFStringRef _strip_trailing_slash(CFStringRef string);
 
 @end
 
-@implementation SCEvents
+@implementation SCFileSystemWatcher
 
 @synthesize _delegate;
 @synthesize _isWatchingPaths;
@@ -160,7 +160,7 @@ static CFStringRef _strip_trailing_slash(CFStringRef string);
         
         [self setWatchedPaths:paths];
         
-        _eventStream = _create_events_stream(self, ((__bridge CFArrayRef)_watchedPaths), createFlags, _notificationLatency, _resumeFromEventId);
+        _eventStream = create_events_stream(self, ((__bridge CFArrayRef)_watchedPaths), createFlags, _notificationLatency, _resumeFromEventId);
         
         // Schedule the event stream on the supplied run loop
         FSEventStreamScheduleWithRunLoop(_eventStream, _runLoop, kCFRunLoopDefaultMode);
@@ -193,7 +193,7 @@ static CFStringRef _strip_trailing_slash(CFStringRef string);
         
         FSEventStreamInvalidate(_eventStream);
         
-        if (_eventStream) FSEventStreamRelease(_eventStream), _eventStream = NULL;
+//        if (_eventStream) FSEventStreamRelease(_eventStream), _eventStream = NULL; // ARC does the job no?
         
         _isWatchingPaths = NO;    
     });
@@ -211,7 +211,7 @@ static CFStringRef _strip_trailing_slash(CFStringRef string);
 	__block NSString *description = nil;
     dispatch_sync(_eventsQueue,
     ^{
-        description = (_isWatchingPaths) ? (__bridge NSString *)FSEventStreamCopyDescription(_eventStream) : nil;
+        description = CFBridgingRelease((_isWatchingPaths) ? FSEventStreamCopyDescription(_eventStream) : nil);
     });
 	
 	return description;
@@ -233,31 +233,12 @@ static CFStringRef _strip_trailing_slash(CFStringRef string);
 
 #pragma mark -
 
-- (void)_finalize
+- (void)dealloc
 {
-    
     _delegate = nil;
 	
 	// Stop the event stream if it's still running
 	if (_isWatchingPaths) [self stopWatchingPaths];
-    
-    dispatch_release(_eventsQueue);
-    
-	_lastEvent = nil;
-    _watchedPaths = nil;
-    _excludedPaths = nil;
-    
-}
-
-- (void)finalize
-{
-    [self _finalize];
-    [super finalize];
-}
-
-- (void)dealloc
-{
-    [self _finalize];
 }
 
 #pragma mark -
@@ -270,7 +251,7 @@ static CFStringRef _strip_trailing_slash(CFStringRef string);
  * @param paths   The paths that are to be 'watched'
  * @param latency The notification latency
  */
-static FSEventStreamRef _create_events_stream(SCEvents *watcher, CFArrayRef paths,FSEventStreamCreateFlags createFlags, CFTimeInterval latency, FSEventStreamEventId sinceWhen)
+static FSEventStreamRef create_events_stream(SCFileSystemWatcher *watcher, CFArrayRef paths,FSEventStreamCreateFlags createFlags, CFTimeInterval latency, FSEventStreamEventId sinceWhen)
 {
 	FSEventStreamContext callbackInfo;
 	
@@ -281,7 +262,7 @@ static FSEventStreamRef _create_events_stream(SCEvents *watcher, CFArrayRef path
 	callbackInfo.copyDescription = NULL;
     
     return FSEventStreamCreate(kCFAllocatorDefault, 
-							   &_events_callback,
+							   &events_callback,
 							   &callbackInfo, 
 							   paths, 
 							   sinceWhen, 
@@ -303,7 +284,7 @@ static FSEventStreamRef _create_events_stream(SCEvents *watcher, CFArrayRef path
  * @param eventFlags         An array of flags associated with the events
  * @param eventIds           An array of IDs associated with the events
  */
-static void _events_callback(ConstFSEventStreamRef streamRef, 
+static void events_callback(ConstFSEventStreamRef streamRef,
 							  void *clientCallBackInfo, 
 							  size_t numEvents, 
 							  void *eventPaths, 
@@ -314,7 +295,7 @@ static void _events_callback(ConstFSEventStreamRef streamRef,
     BOOL shouldIgnore = NO;
     
 	CFArrayRef paths = (CFArrayRef)eventPaths;
-    SCEvents *pathWatcher = (__bridge SCEvents *)clientCallBackInfo;
+    SCFileSystemWatcher *pathWatcher = (__bridge SCFileSystemWatcher *)clientCallBackInfo;
     
     for (i = 0; i < numEvents; i++) 
 	{
@@ -334,7 +315,7 @@ static void _events_callback(ConstFSEventStreamRef streamRef,
          * calling this callback more frequently.
          */
         
-		NSArray *excludedPaths = [pathWatcher excludedPaths];
+		NSSet *excludedPaths = [pathWatcher excludedPaths];
         CFStringRef eventPath = CFArrayGetValueAtIndex(paths, (CFIndex)i);
         
         // Check to see if the event should be ignored if it's path is in the exclude list
@@ -357,16 +338,12 @@ static void _events_callback(ConstFSEventStreamRef streamRef,
     
         if (!shouldIgnore) {
 			
-			// If present remove the path's trailing slash
-			eventPath = _strip_trailing_slash(eventPath);
+//			// If present remove the path's trailing slash
+//			eventPath = _strip_trailing_slash(eventPath);
             
             SCEvent *event = [SCEvent eventWithEventId:(NSUInteger)eventIds[i] eventDate:[NSDate date] eventPath:(__bridge NSString *)eventPath eventFlags:(FSEventStreamEventFlags)eventFlags[i]];
 			
-			CFRelease(eventPath);
-			
-            if ([[pathWatcher delegate] conformsToProtocol:@protocol(SCEventListenerProtocol)]) {
-                [[pathWatcher delegate] pathWatcher:pathWatcher eventOccurred:event];
-            }
+            [[pathWatcher delegate] pathWatcher:pathWatcher eventOccurred:event];
                 
             if (i == (numEvents - 1)) {
                 [pathWatcher setLastEvent:event];
@@ -375,27 +352,27 @@ static void _events_callback(ConstFSEventStreamRef streamRef,
     }
 }
 
-/**
- * If present, strips the trailing slash from the supplied string. Note, that the caler is
- * responsible for freeing the associate memory.
- *
- * @param string The string that is to be stripped
- *
- @ @return The resulting string
- */
-static CFStringRef _strip_trailing_slash(CFStringRef string)
-{
-	CFStringRef stripped = string;
-	
-	if (CFStringHasSuffix((CFStringRef)stripped, CFSTR("/"))) {
-		stripped = CFStringCreateWithSubstring(kCFAllocatorDefault, stripped, CFRangeMake(0, (CFStringGetLength(stripped) - 1)));				
-	}
-	
-#ifdef __OBJC_GC__
-	return (stripped) ? CFMakeCollectable(stripped) : string;
-#else
-	return (stripped) ? stripped : string;    
-#endif
-}
+///**
+// * If present, strips the trailing slash from the supplied string. Note, that the caler is
+// * responsible for freeing the associate memory.
+// *
+// * @param string The string that is to be stripped
+// *
+// @ @return The resulting string
+// */
+//static CFStringRef _strip_trailing_slash(CFStringRef string)
+//{
+//	CFStringRef stripped = string;
+//	
+//	if (CFStringHasSuffix((CFStringRef)stripped, CFSTR("/"))) {
+//		stripped = CFStringCreateWithSubstring(kCFAllocatorDefault, stripped, CFRangeMake(0, (CFStringGetLength(stripped) - 1)));				
+//	}
+//	
+//#ifdef __OBJC_GC__
+//	return (stripped) ? CFMakeCollectable(stripped) : string;
+//#else
+//	return (stripped) ? stripped : string;    
+//#endif
+//}
 
 @end

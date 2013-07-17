@@ -12,7 +12,7 @@
 		8D11072D0486CEB800E47090 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 29B97316FDCFA39411CA2CEA /* main.m */; settings = {ATTRIBUTES = (); }; };
 		8D11072F0486CEB800E47090 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */; };
 		C41589AF1796E95100013AC7 /* SCEvent.m in Sources */ = {isa = PBXBuildFile; fileRef = C41589AB1796E95100013AC7 /* SCEvent.m */; };
-		C41589B01796E95100013AC7 /* SCEvents.m in Sources */ = {isa = PBXBuildFile; fileRef = C41589AE1796E95100013AC7 /* SCEvents.m */; };
+		C41589B01796E95100013AC7 /* SCFileSystemWatcher.m in Sources */ = {isa = PBXBuildFile; fileRef = C41589AE1796E95100013AC7 /* SCFileSystemWatcher.m */; };
 		C430C7220F682C460064A6D6 /* FSEventsTestController.m in Sources */ = {isa = PBXBuildFile; fileRef = C430C7200F682C460064A6D6 /* FSEventsTestController.m */; };
 /* End PBXBuildFile section */
 
@@ -30,8 +30,8 @@
 		C41589AA1796E95100013AC7 /* SCEvent.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SCEvent.h; path = ../SCEvent.h; sourceTree = "<group>"; };
 		C41589AB1796E95100013AC7 /* SCEvent.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = SCEvent.m; path = ../SCEvent.m; sourceTree = "<group>"; };
 		C41589AC1796E95100013AC7 /* SCEventListenerProtocol.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SCEventListenerProtocol.h; path = ../SCEventListenerProtocol.h; sourceTree = "<group>"; };
-		C41589AD1796E95100013AC7 /* SCEvents.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SCEvents.h; path = ../SCEvents.h; sourceTree = "<group>"; };
-		C41589AE1796E95100013AC7 /* SCEvents.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = SCEvents.m; path = ../SCEvents.m; sourceTree = "<group>"; };
+		C41589AD1796E95100013AC7 /* SCFileSystemWatcher.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SCFileSystemWatcher.h; path = ../SCFileSystemWatcher.h; sourceTree = "<group>"; };
+		C41589AE1796E95100013AC7 /* SCFileSystemWatcher.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = SCFileSystemWatcher.m; path = ../SCFileSystemWatcher.m; sourceTree = "<group>"; };
 		C430C7200F682C460064A6D6 /* FSEventsTestController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FSEventsTestController.m; sourceTree = "<group>"; };
 		C430C7210F682C460064A6D6 /* FSEventsTestController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FSEventsTestController.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -54,8 +54,8 @@
 				C41589AA1796E95100013AC7 /* SCEvent.h */,
 				C41589AB1796E95100013AC7 /* SCEvent.m */,
 				C41589AC1796E95100013AC7 /* SCEventListenerProtocol.h */,
-				C41589AD1796E95100013AC7 /* SCEvents.h */,
-				C41589AE1796E95100013AC7 /* SCEvents.m */,
+				C41589AD1796E95100013AC7 /* SCFileSystemWatcher.h */,
+				C41589AE1796E95100013AC7 /* SCFileSystemWatcher.m */,
 			);
 			name = Classes;
 			sourceTree = "<group>";
@@ -189,7 +189,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				C41589B01796E95100013AC7 /* SCEvents.m in Sources */,
+				C41589B01796E95100013AC7 /* SCFileSystemWatcher.m in Sources */,
 				8D11072D0486CEB800E47090 /* main.m in Sources */,
 				C41589AF1796E95100013AC7 /* SCEvent.m in Sources */,
 				C430C7220F682C460064A6D6 /* FSEventsTestController.m in Sources */,

@@ -28,7 +28,7 @@
  *  OTHER DEALINGS IN THE SOFTWARE.
  */
 
-@class SCEvents, SCEvent;
+@class SCFileSystemWatcher, SCEvent;
 
 /**
  * @protocol SCEventListenerProtocol SCEventListenerProtocol.h
@@ -47,6 +47,6 @@
  * @param pathwatcher The SCEvents instance that received the event
  * @param event       The actual event that occurred
  */
-- (void)pathWatcher:(SCEvents *)pathWatcher eventOccurred:(SCEvent *)event;
+- (void)pathWatcher:(SCFileSystemWatcher *)pathWatcher eventOccurred:(SCEvent *)event;
 
 @end

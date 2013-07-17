@@ -1,7 +1,11 @@
 Mods made to mz2's original code:
 
-- removed custom SCEventStreamEventFlags to use FSEvent's constants. (they were redefined with the same values, but incomplete since 10.7...)
-- I'm trying to use the new (10.7+) kFSEventStreamCreateFlagFileEvents flag to get _file_ events instead of _directory_ events!
+- removed custom SCEventStreamEventFlags to use FSEvent's standard constants. (they were redefined with the same values, but incomplete since 10.7 and I prepare for the future)
+- I'm willing to be compatibble with the new (10.7+) kFSEventStreamCreateFlagFileEvents flag to get _file_ events instead of _directory_ events 
+- optimized code (NSSet vs NSArray, and misuse of conformsToProtocol: method). This is a required protocol method so compiler checked the conformance for us...
+- You now have to pass some flags (or 0) to the startWatchingPaths:... methods
+in order to modify the way the stream is created.
+===
 
 
 

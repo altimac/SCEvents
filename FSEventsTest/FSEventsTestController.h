@@ -1,11 +1,11 @@
 #import <Cocoa/Cocoa.h>
 
-@class SCEvents;
+@class SCFileSystemWatcher;
 
 @interface FSEventsTestController : NSObject {
     
 }
 
-@property(strong,nonatomic) SCEvents *watcher;
+@property(strong,nonatomic) SCFileSystemWatcher *watcher;
 
 @end

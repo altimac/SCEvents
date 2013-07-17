@@ -47,9 +47,9 @@
  *
  * An Objective-C wrapper for the FSEvents C API.
  */
-@interface SCEvents : NSObject 
+@interface SCFileSystemWatcher : NSObject 
 {
-    __unsafe_unretained id <SCEventListenerProtocol> _delegate; 
+    __weak id <SCEventListenerProtocol> _delegate;
     
     BOOL                 _isWatchingPaths;
     BOOL                 _ignoreEventsFromSubDirs;
@@ -62,7 +62,7 @@
       
     SCEvent              *_lastEvent;
     NSArray              *_watchedPaths;
-    NSArray              *_excludedPaths;
+    NSSet              *_excludedPaths;
 	
     dispatch_queue_t     _eventsQueue;
 }
@@ -70,7 +70,7 @@
 /**
  * @property _delegate The delegate that SCEvents is to notify when events occur
  */
-@property (readwrite, assign, getter=delegate, setter=setDelegate:) id <SCEventListenerProtocol> _delegate;
+@property (readwrite, weak, getter=delegate, setter=setDelegate:) id <SCEventListenerProtocol> _delegate;
 
 /**
  * @property _isWatchingPaths Indicates whether the events stream is currently running
@@ -78,7 +78,7 @@
 @property (readonly, getter=isWatchingPaths) BOOL _isWatchingPaths;
 
 /**
- * @property _ignoreEventsFromSubDirs Indicates whether events from sub-directories of the excluded paths are ignored. Defaults to NO.
+ * @property _ignoreEventsFromSubDirs Indicates whether events from sub-directories of the excluded paths are ignored. Defaults to NO. This 
  */
 @property (readwrite, assign, getter=ignoreEventsFromSubDirs, setter=setIgnoreEventsFromSubDirs:) BOOL _ignoreEventsFromSubDirs;
 
@@ -90,7 +90,7 @@
 /**
  * @property _lastEvent The last event that occurred and that was delivered to the delegate.
  */
-@property (readwrite, retain, getter=lastEvent, setter=setLastEvent:) SCEvent *_lastEvent;
+@property (readwrite, strong, getter=lastEvent, setter=setLastEvent:) SCEvent *_lastEvent;
 
 /**
  * @property _notificationLatency The latency time of which SCEvents is notified by FSEvents of events. Defaults to 3 seconds.
@@ -100,12 +100,12 @@
 /**
  * @property _watchedPaths The paths that are to be watched for events.
  */
-@property (readwrite, retain, getter=watchedPaths, setter=setWatchedPaths:) NSArray *_watchedPaths;
+@property (readwrite, strong, getter=watchedPaths, setter=setWatchedPaths:) NSArray *_watchedPaths;
 
 /**
  * @property _excludedPaths The paths that SCEvents should ignore events from and not deliver to the delegate.
  */
-@property (readwrite, retain, getter=excludedPaths, setter=setExcludedPaths:) NSArray *_excludedPaths;
+@property (readwrite, strong, getter=excludedPaths, setter=setExcludedPaths:) NSSet *_excludedPaths;
 
 /**
  * @property _resumeFromEventId The event ID from which to resume from when the stream is started.

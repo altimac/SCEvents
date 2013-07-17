@@ -97,7 +97,7 @@
 {
 	return [NSString stringWithFormat:@"<%@ { eventId = %llu, eventPath = %@, eventFlags = %@ } >",
 			[self className], 
-			_eventId, 
+			_eventId,
 			[self eventPath], 
 			(flagsStringForFlags(_eventFlags))];
 }
@@ -168,10 +168,5 @@ NSString *flagsStringForFlags(FSEventStreamEventFlags flags)
 }
 
 #pragma mark -
-
-- (void)dealloc
-{
-    _eventDate = nil;
-}
 
 @end
