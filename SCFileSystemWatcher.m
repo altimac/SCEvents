@@ -297,6 +297,8 @@ static void events_callback(ConstFSEventStreamRef streamRef,
 	CFArrayRef paths = (CFArrayRef)eventPaths;
     SCFileSystemWatcher *pathWatcher = (__bridge SCFileSystemWatcher *)clientCallBackInfo;
     
+    NSMutableArray *batchedEvents = [NSMutableArray arrayWithCapacity:numEvents];
+    
     for (i = 0; i < numEvents; i++) 
 	{
         /* Please note that we are estimating the date for when the event occurred 
@@ -342,8 +344,12 @@ static void events_callback(ConstFSEventStreamRef streamRef,
 //			eventPath = _strip_trailing_slash(eventPath);
             
             SCEvent *event = [SCEvent eventWithEventId:(NSUInteger)eventIds[i] eventDate:[NSDate date] eventPath:(__bridge NSString *)eventPath eventFlags:(FSEventStreamEventFlags)eventFlags[i]];
-			
-            [[pathWatcher delegate] pathWatcher:pathWatcher eventOccurred:event];
+			[batchedEvents addObject:event];
+            
+            if([[pathWatcher delegate] respondsToSelector:@selector(pathWatcher:eventOccurred:)])
+                [[pathWatcher delegate] pathWatcher:pathWatcher eventOccurred:event];
+            
+            [[pathWatcher delegate] pathWatcher:pathWatcher eventsOccurred:batchedEvents];
                 
             if (i == (numEvents - 1)) {
                 [pathWatcher setLastEvent:event];

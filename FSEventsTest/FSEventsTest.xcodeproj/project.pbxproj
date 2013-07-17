@@ -14,6 +14,8 @@
 		C41589AF1796E95100013AC7 /* SCEvent.m in Sources */ = {isa = PBXBuildFile; fileRef = C41589AB1796E95100013AC7 /* SCEvent.m */; };
 		C41589B01796E95100013AC7 /* SCFileSystemWatcher.m in Sources */ = {isa = PBXBuildFile; fileRef = C41589AE1796E95100013AC7 /* SCFileSystemWatcher.m */; };
 		C430C7220F682C460064A6D6 /* FSEventsTestController.m in Sources */ = {isa = PBXBuildFile; fileRef = C430C7200F682C460064A6D6 /* FSEventsTestController.m */; };
+		C4DDF03D179722F900CEF456 /* SCEventInterpreter.m in Sources */ = {isa = PBXBuildFile; fileRef = C4DDF03C179722F900CEF456 /* SCEventInterpreter.m */; };
+		C4DDF03E179740B100CEF456 /* SCFileSystemOperation.m in Sources */ = {isa = PBXBuildFile; fileRef = C4DDF03A179722DD00CEF456 /* SCFileSystemOperation.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -34,6 +36,10 @@
 		C41589AE1796E95100013AC7 /* SCFileSystemWatcher.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = SCFileSystemWatcher.m; path = ../SCFileSystemWatcher.m; sourceTree = "<group>"; };
 		C430C7200F682C460064A6D6 /* FSEventsTestController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FSEventsTestController.m; sourceTree = "<group>"; };
 		C430C7210F682C460064A6D6 /* FSEventsTestController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FSEventsTestController.h; sourceTree = "<group>"; };
+		C4DDF039179722DD00CEF456 /* SCFileSystemOperation.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = SCFileSystemOperation.h; path = ../SCFileSystemOperation.h; sourceTree = "<group>"; };
+		C4DDF03A179722DD00CEF456 /* SCFileSystemOperation.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = SCFileSystemOperation.m; path = ../SCFileSystemOperation.m; sourceTree = "<group>"; };
+		C4DDF03B179722F900CEF456 /* SCEventInterpreter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SCEventInterpreter.h; path = ../SCEventInterpreter.h; sourceTree = "<group>"; };
+		C4DDF03C179722F900CEF456 /* SCEventInterpreter.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = SCEventInterpreter.m; path = ../SCEventInterpreter.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -56,6 +62,10 @@
 				C41589AC1796E95100013AC7 /* SCEventListenerProtocol.h */,
 				C41589AD1796E95100013AC7 /* SCFileSystemWatcher.h */,
 				C41589AE1796E95100013AC7 /* SCFileSystemWatcher.m */,
+				C4DDF03B179722F900CEF456 /* SCEventInterpreter.h */,
+				C4DDF03C179722F900CEF456 /* SCEventInterpreter.m */,
+				C4DDF039179722DD00CEF456 /* SCFileSystemOperation.h */,
+				C4DDF03A179722DD00CEF456 /* SCFileSystemOperation.m */,
 			);
 			name = Classes;
 			sourceTree = "<group>";
@@ -191,7 +201,9 @@
 			files = (
 				C41589B01796E95100013AC7 /* SCFileSystemWatcher.m in Sources */,
 				8D11072D0486CEB800E47090 /* main.m in Sources */,
+				C4DDF03D179722F900CEF456 /* SCEventInterpreter.m in Sources */,
 				C41589AF1796E95100013AC7 /* SCEvent.m in Sources */,
+				C4DDF03E179740B100CEF456 /* SCFileSystemOperation.m in Sources */,
 				C430C7220F682C460064A6D6 /* FSEventsTestController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

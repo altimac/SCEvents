@@ -48,28 +48,31 @@
     FSEventStreamEventId _eventId;
     NSDate *_eventDate;
     NSString *_eventPath;
+    NSURL *_eventURL;
     FSEventStreamEventFlags _eventFlags;
 }
 
 /**
  * @property _eventId The ID of the event.
  */
-@property (readwrite, assign, getter=eventId, setter=setEventId:) FSEventStreamEventId _eventId;
+@property (readwrite, nonatomic, assign, getter=eventId, setter=setEventId:) FSEventStreamEventId _eventId;
 
 /**
  * @property _eventDate The date of the event.
  */
-@property (readwrite, retain, getter=eventDate, setter=setEventDate:) NSDate *_eventDate;
+@property (readwrite, nonatomic, retain, getter=eventDate, setter=setEventDate:) NSDate *_eventDate;
 
 /**
  * @property _eventPath The file system path of the event.
  */
-@property (readwrite, retain, getter=eventPath, setter=setEventPath:) NSString *_eventPath;
+@property (readwrite, nonatomic, retain, getter=eventPath, setter=setEventPath:) NSString *_eventPath;
+
+@property (readonly, nonatomic, retain, getter=eventURL) NSURL *_eventURL;
 
 /**
  * @property _eventFlag The flags that are associated with the event.
  */
-@property (readwrite, assign, getter=eventFlags, setter=setEventFlags:) FSEventStreamEventFlags _eventFlags;
+@property (readwrite, nonatomic, assign, getter=eventFlags, setter=setEventFlags:) FSEventStreamEventFlags _eventFlags;
 
 + (SCEvent *)eventWithEventId:(FSEventStreamEventId)identifier
 					eventDate:(NSDate *)date 

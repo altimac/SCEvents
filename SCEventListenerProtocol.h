@@ -44,9 +44,24 @@
  * event occurs. The instance of SCEvents which received the event and the event
  * itself are passed as parameters.
  *
- * @param pathwatcher The SCEvents instance that received the event
+ * @param pathwatcher The SCFileSystemWatcher instance that received the event
  * @param event       The actual event that occurred
  */
+@optional
+
 - (void)pathWatcher:(SCFileSystemWatcher *)pathWatcher eventOccurred:(SCEvent *)event;
+
+/**
+ * Conforming objects' implementation of this method will be called whenever an
+ * event occurs. The instance of SCEvents which received the event and the SCFileSystemWatcher
+ * itself are passed as parameters.
+ *
+ * @param pathwatcher The SCFileSystemWatcher instance that received the event
+ * @param events      The actual events that occurred
+ */
+
+@required
+
+- (void)pathWatcher:(SCFileSystemWatcher *)pathWatcher eventsOccurred:(NSArray *)events;
 
 @end

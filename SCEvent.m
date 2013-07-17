@@ -35,6 +35,7 @@
 @synthesize _eventId;
 @synthesize _eventDate;
 @synthesize _eventPath;
+@synthesize _eventURL;
 @synthesize _eventFlags;
 
 #pragma mark -
@@ -83,6 +84,25 @@
     
     return self;
 }
+
+#pragma mark -
+
+-(void)setEventPath:(NSString*)aPath
+{
+    _eventPath = aPath;
+    _eventURL = nil;
+}
+
+-(NSURL*)eventURL
+{
+    if(!_eventURL)
+    {
+        _eventURL = [NSURL fileURLWithPath:self.eventPath];
+    }
+        
+    return _eventURL;
+}
+
 
 #pragma mark -
 #pragma mark Other
