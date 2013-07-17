@@ -54,7 +54,7 @@
 + (SCEvent *)eventWithEventId:(NSUInteger)identifier 
 					eventDate:(NSDate *)date 
 					eventPath:(NSString *)path 
-				   eventFlags:(SCEventFlags)flags
+				   eventFlags:(FSEventStreamEventFlags)flags
 {
     return [[SCEvent alloc] initWithEventId:identifier eventDate:date eventPath:path eventFlags:flags];
 }
@@ -72,7 +72,7 @@
 - (id)initWithEventId:(NSUInteger)identifier 
 			eventDate:(NSDate *)date 
 			eventPath:(NSString *)path 
-		   eventFlags:(SCEventFlags)flags
+		   eventFlags:(FSEventStreamEventFlags)flags
 {
     if ((self = [super init])) {
         [self setEventId:identifier];
@@ -95,11 +95,76 @@
  */
 - (NSString *)description
 {
-	return [NSString stringWithFormat:@"<%@ { eventId = %ld, eventPath = %@, eventFlags = %ld } >", 
+	return [NSString stringWithFormat:@"<%@ { eventId = %ld, eventPath = %@, eventFlags = %@ } >",
 			[self className], 
 			((unsigned long)_eventId), 
 			[self eventPath], 
-			((unsigned long)_eventFlags)];
+			(flagsStringForFlags(_eventFlags))];
+}
+
+NSString *flagsStringForFlags(FSEventStreamEventFlags flags)
+{
+    NSMutableString *string = [NSMutableString string];
+    
+    if(flags & kFSEventStreamEventFlagMustScanSubDirs)
+        [string appendString:@"|kFSEventStreamEventFlagMustScanSubDirs"];
+    if(flags & kFSEventStreamEventFlagUserDropped)
+        [string appendString:@"|kFSEventStreamEventFlagUserDropped"];
+    if(flags & kFSEventStreamEventFlagKernelDropped)
+        [string appendString:@"|kFSEventStreamEventFlagKernelDropped"];
+    
+    if(flags & kFSEventStreamEventFlagEventIdsWrapped)
+        [string appendString:@"|kFSEventStreamEventFlagEventIdsWrapped"];
+    
+    if(flags & kFSEventStreamEventFlagHistoryDone)
+        [string appendString:@"|kFSEventStreamEventFlagHistoryDone"];
+    
+    if(flags & kFSEventStreamEventFlagRootChanged)
+        [string appendString:@"|kFSEventStreamEventFlagRootChanged"];
+    
+    
+    
+    
+    if(flags & kFSEventStreamEventFlagItemCreated)
+        [string appendString:@"|kFSEventStreamEventFlagItemCreated"];
+    
+    if(flags & kFSEventStreamEventFlagItemRemoved)
+        [string appendString:@"|kFSEventStreamEventFlagItemRemoved"];
+    
+    if(flags & kFSEventStreamEventFlagItemInodeMetaMod)
+        [string appendString:@"|kFSEventStreamEventFlagItemInodeMetaMod"];
+    
+    if(flags & kFSEventStreamEventFlagItemRenamed)
+        [string appendString:@"|kFSEventStreamEventFlagItemRenamed"];
+    
+    if(flags & kFSEventStreamEventFlagItemModified)
+        [string appendString:@"|kFSEventStreamEventFlagItemModified"];
+    
+    if(flags & kFSEventStreamEventFlagItemFinderInfoMod)
+        [string appendString:@"|kFSEventStreamEventFlagItemFinderInfoMod"];
+    
+    if(flags & kFSEventStreamEventFlagItemChangeOwner)
+        [string appendString:@"|kFSEventStreamEventFlagItemChangeOwner"];
+    
+    if(flags & kFSEventStreamEventFlagItemXattrMod)
+        [string appendString:@"|kFSEventStreamEventFlagItemXattrMod"];
+    
+    if(flags & kFSEventStreamEventFlagItemIsFile)
+        [string appendString:@"|kFSEventStreamEventFlagItemIsFile"];
+    
+    if(flags & kFSEventStreamEventFlagItemIsDir)
+        [string appendString:@"|kFSEventStreamEventFlagItemIsDir"];
+    
+    if(flags & kFSEventStreamEventFlagItemIsSymlink)
+        [string appendString:@"|kFSEventStreamEventFlagItemIsSymlink"];
+    
+    
+    if([string length] == 0)
+        [string appendString:@"no flag..."];
+    else
+        [string replaceCharactersInRange:NSMakeRange(0, 1) withString:@""]; // removes leading "|"
+    
+    return string;
 }
 
 #pragma mark -

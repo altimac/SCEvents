@@ -28,16 +28,4 @@
  *  OTHER DEALINGS IN THE SOFTWARE.
  */
 
-typedef enum 
-{ 
-    SCEventStreamEventFlagNone            = 0x00000000, 
-    SCEventStreamEventFlagMustScanSubDirs = 0x00000001, 
-    SCEventStreamEventFlagUserDropped     = 0x00000002, 
-    SCEventStreamEventFlagKernelDropped   = 0x00000004, 
-    SCEventStreamEventFlagEventIdsWrapped = 0x00000008, 
-    SCEventStreamEventFlagHistoryDone     = 0x00000010, 
-    SCEventStreamEventFlagRootChanged     = 0x00000020, 
-    SCEventStreamEventFlagMount           = 0x00000040, 
-    SCEventStreamEventFlagUnmount         = 0x00000080
-} 
-SCEventFlags;
+// not used anymore for custom flags. Use FSEvents flags!

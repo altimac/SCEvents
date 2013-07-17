@@ -42,7 +42,8 @@ static const NSUInteger SCEventsDefaultIgnoreEventsFromSubDirs = 1;
 @interface SCEvents ()
 
 static FSEventStreamRef _create_events_stream(SCEvents *watcher,
-											  CFArrayRef paths, 
+											  CFArrayRef paths,
+                                              FSEventStreamCreateFlags createFlags,
 											  CFTimeInterval latency,
 											  FSEventStreamEventId sinceWhen);
 
@@ -62,6 +63,7 @@ static CFStringRef _strip_trailing_slash(CFStringRef string);
 @synthesize _delegate;
 @synthesize _isWatchingPaths;
 @synthesize _ignoreEventsFromSubDirs;
+@synthesize _createFlags;
 @synthesize _lastEvent;
 @synthesize _notificationLatency;
 @synthesize _watchedPaths;
@@ -84,6 +86,7 @@ static CFStringRef _strip_trailing_slash(CFStringRef string);
         _eventsQueue = dispatch_queue_create("scevents.queue", 0);
         
 		[self setResumeFromEventId:kFSEventStreamEventIdSinceNow];
+        _createFags = kFSEventStreamCreateFlagNone;
         [self setNotificationLatency:SCEventsDefaultNotificationLatency];
         [self setIgnoreEventsFromSubDirs:SCEventsDefaultIgnoreEventsFromSubDirs];
     }
@@ -135,9 +138,9 @@ static CFStringRef _strip_trailing_slash(CFStringRef string);
  *
  * @return A BOOL indicating the success or failure
  */
-- (BOOL)startWatchingPaths:(NSArray *)paths
+- (BOOL)startWatchingPaths:(NSArray *)paths flags:(FSEventStreamCreateFlags)createFlags;
 {
-    return [self startWatchingPaths:paths onRunLoop:[NSRunLoop currentRunLoop]];
+    return [self startWatchingPaths:paths flags:flags onRunLoop:[NSRunLoop currentRunLoop]];
 }
 
 /**
@@ -151,7 +154,7 @@ static CFStringRef _strip_trailing_slash(CFStringRef string);
  *
  * @return A BOOL indicating the success or failure
  */
-- (BOOL)startWatchingPaths:(NSArray *)paths onRunLoop:(NSRunLoop *)runLoop
+- (BOOL)startWatchingPaths:(NSArray *)paths flags:(FSEventStreamCreateFlags)createFlags onRunLoop:(NSRunLoop *)runLoop
 {
     if (([paths count] == 0) || (_isWatchingPaths)) { return NO; }
     
@@ -161,7 +164,7 @@ static CFStringRef _strip_trailing_slash(CFStringRef string);
         
         [self setWatchedPaths:paths];
         
-        _eventStream = _create_events_stream(self, ((__bridge CFArrayRef)_watchedPaths), _notificationLatency, _resumeFromEventId);
+        _eventStream = _create_events_stream(self, ((__bridge CFArrayRef)_watchedPaths), createFlags, _notificationLatency, _resumeFromEventId);
         
         // Schedule the event stream on the supplied run loop
         FSEventStreamScheduleWithRunLoop(_eventStream, _runLoop, kCFRunLoopDefaultMode);
@@ -271,7 +274,7 @@ static CFStringRef _strip_trailing_slash(CFStringRef string);
  * @param paths   The paths that are to be 'watched'
  * @param latency The notification latency
  */
-static FSEventStreamRef _create_events_stream(SCEvents *watcher, CFArrayRef paths, CFTimeInterval latency, FSEventStreamEventId sinceWhen)
+static FSEventStreamRef _create_events_stream(SCEvents *watcher, CFArrayRef paths,FSEventStreamCreateFlags createFlags, CFTimeInterval latency, FSEventStreamEventId sinceWhen)
 {
 	FSEventStreamContext callbackInfo;
 	
@@ -287,7 +290,7 @@ static FSEventStreamRef _create_events_stream(SCEvents *watcher, CFArrayRef path
 							   paths, 
 							   sinceWhen, 
 							   latency, 
-							   kFSEventStreamCreateFlagUseCFTypes | kFSEventStreamCreateFlagWatchRoot);
+							   FSEventStreamCreateFlags | kFSEventStreamCreateFlagUseCFTypes); // always add kFSEventStreamCreateFlagUseCFTypes
 }
 
 /**

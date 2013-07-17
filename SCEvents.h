@@ -53,8 +53,10 @@
     
     BOOL                 _isWatchingPaths;
     BOOL                 _ignoreEventsFromSubDirs;
+    FSEventStreamCreateFlags _createFags;
 	CFRunLoopRef         _runLoop;
     FSEventStreamRef     _eventStream;
+    
     CFTimeInterval       _notificationLatency;
 	FSEventStreamEventId _resumeFromEventId;
       
@@ -79,6 +81,12 @@
  * @property _ignoreEventsFromSubDirs Indicates whether events from sub-directories of the excluded paths are ignored. Defaults to YES.
  */
 @property (readwrite, assign, getter=ignoreEventsFromSubDirs, setter=setIgnoreEventsFromSubDirs:) BOOL _ignoreEventsFromSubDirs;
+
+/**
+ * @property _createFags Indicates flags that were used to create the stream. Defaults to kFSEventStreamCreateFlagNone
+ */
+@property (readonly, assign, getter=createFlags) FSEventStreamCreateFlags _createFags;
+
 
 /**
  * @property _lastEvent The last event that occurred and that was delivered to the delegate.
@@ -108,8 +116,8 @@
 - (BOOL)flushEventStreamSync;
 - (BOOL)flushEventStreamAsync;
 
-- (BOOL)startWatchingPaths:(NSArray *)paths;
-- (BOOL)startWatchingPaths:(NSArray *)paths onRunLoop:(NSRunLoop *)runLoop;
+- (BOOL)startWatchingPaths:(NSArray *)paths flags:(FSEventStreamCreateFlags)flags;
+- (BOOL)startWatchingPaths:(NSArray *)paths flags:(FSEventStreamCreateFlags)flags onRunLoop:(NSRunLoop *)runLoop; // flags is typically a | combination of flags. kFSEventStreamCreateFlagNone by default
 
 - (BOOL)stopWatchingPaths;
 
