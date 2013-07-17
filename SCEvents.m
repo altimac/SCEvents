@@ -32,10 +32,6 @@
 #import "SCEvent.h"
 #import "pthread.h"
 
-// Constants
-static const CGFloat SCEventsDefaultNotificationLatency = 3.0;
-static const NSUInteger SCEventsDefaultIgnoreEventsFromSubDirs = 1;
-
 /**
  * Private API
  */
@@ -86,9 +82,9 @@ static CFStringRef _strip_trailing_slash(CFStringRef string);
         _eventsQueue = dispatch_queue_create("scevents.queue", 0);
         
 		[self setResumeFromEventId:kFSEventStreamEventIdSinceNow];
-        _createFags = kFSEventStreamCreateFlagNone;
-        [self setNotificationLatency:SCEventsDefaultNotificationLatency];
-        [self setIgnoreEventsFromSubDirs:SCEventsDefaultIgnoreEventsFromSubDirs];
+        _createFlags = kFSEventStreamCreateFlagNone;
+        [self setNotificationLatency:3.0]; // defaults to 3s
+        [self setIgnoreEventsFromSubDirs:NO];
     }
     
     return self;
@@ -140,7 +136,7 @@ static CFStringRef _strip_trailing_slash(CFStringRef string);
  */
 - (BOOL)startWatchingPaths:(NSArray *)paths flags:(FSEventStreamCreateFlags)createFlags;
 {
-    return [self startWatchingPaths:paths flags:flags onRunLoop:[NSRunLoop currentRunLoop]];
+    return [self startWatchingPaths:paths flags:createFlags onRunLoop:[NSRunLoop currentRunLoop]];
 }
 
 /**
@@ -290,7 +286,7 @@ static FSEventStreamRef _create_events_stream(SCEvents *watcher, CFArrayRef path
 							   paths, 
 							   sinceWhen, 
 							   latency, 
-							   FSEventStreamCreateFlags | kFSEventStreamCreateFlagUseCFTypes); // always add kFSEventStreamCreateFlagUseCFTypes
+							   createFlags | kFSEventStreamCreateFlagUseCFTypes); // always add kFSEventStreamCreateFlagUseCFTypes
 }
 
 /**
@@ -364,7 +360,7 @@ static void _events_callback(ConstFSEventStreamRef streamRef,
 			// If present remove the path's trailing slash
 			eventPath = _strip_trailing_slash(eventPath);
             
-            SCEvent *event = [SCEvent eventWithEventId:(NSUInteger)eventIds[i] eventDate:[NSDate date] eventPath:(__bridge NSString *)eventPath eventFlags:(SCEventFlags)eventFlags[i]];
+            SCEvent *event = [SCEvent eventWithEventId:(NSUInteger)eventIds[i] eventDate:[NSDate date] eventPath:(__bridge NSString *)eventPath eventFlags:(FSEventStreamEventFlags)eventFlags[i]];
 			
 			CFRelease(eventPath);
 			

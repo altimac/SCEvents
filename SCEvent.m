@@ -51,7 +51,7 @@
  *
  * @return The initialized (autoreleased) instance
  */
-+ (SCEvent *)eventWithEventId:(NSUInteger)identifier 
++ (SCEvent *)eventWithEventId:(FSEventStreamEventId)identifier
 					eventDate:(NSDate *)date 
 					eventPath:(NSString *)path 
 				   eventFlags:(FSEventStreamEventFlags)flags
@@ -69,7 +69,7 @@
  *
  * @return The initialized instance
  */
-- (id)initWithEventId:(NSUInteger)identifier 
+- (id)initWithEventId:(FSEventStreamEventId)identifier
 			eventDate:(NSDate *)date 
 			eventPath:(NSString *)path 
 		   eventFlags:(FSEventStreamEventFlags)flags
@@ -95,9 +95,9 @@
  */
 - (NSString *)description
 {
-	return [NSString stringWithFormat:@"<%@ { eventId = %ld, eventPath = %@, eventFlags = %@ } >",
+	return [NSString stringWithFormat:@"<%@ { eventId = %llu, eventPath = %@, eventFlags = %@ } >",
 			[self className], 
-			((unsigned long)_eventId), 
+			_eventId, 
 			[self eventPath], 
 			(flagsStringForFlags(_eventFlags))];
 }

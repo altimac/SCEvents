@@ -49,11 +49,11 @@
  */
 @interface SCEvents : NSObject 
 {
-    __unsafe_unretained id <NSObject, SCEventListenerProtocol> _delegate; 
+    __unsafe_unretained id <SCEventListenerProtocol> _delegate; 
     
     BOOL                 _isWatchingPaths;
     BOOL                 _ignoreEventsFromSubDirs;
-    FSEventStreamCreateFlags _createFags;
+    FSEventStreamCreateFlags _createFlags;
 	CFRunLoopRef         _runLoop;
     FSEventStreamRef     _eventStream;
     
@@ -70,7 +70,7 @@
 /**
  * @property _delegate The delegate that SCEvents is to notify when events occur
  */
-@property (readwrite, assign, getter=delegate, setter=setDelegate:) id <NSObject, SCEventListenerProtocol> _delegate;
+@property (readwrite, assign, getter=delegate, setter=setDelegate:) id <SCEventListenerProtocol> _delegate;
 
 /**
  * @property _isWatchingPaths Indicates whether the events stream is currently running
@@ -78,15 +78,14 @@
 @property (readonly, getter=isWatchingPaths) BOOL _isWatchingPaths;
 
 /**
- * @property _ignoreEventsFromSubDirs Indicates whether events from sub-directories of the excluded paths are ignored. Defaults to YES.
+ * @property _ignoreEventsFromSubDirs Indicates whether events from sub-directories of the excluded paths are ignored. Defaults to NO.
  */
 @property (readwrite, assign, getter=ignoreEventsFromSubDirs, setter=setIgnoreEventsFromSubDirs:) BOOL _ignoreEventsFromSubDirs;
 
 /**
  * @property _createFags Indicates flags that were used to create the stream. Defaults to kFSEventStreamCreateFlagNone
  */
-@property (readonly, assign, getter=createFlags) FSEventStreamCreateFlags _createFags;
-
+@property (readonly, assign, getter=createFlags) FSEventStreamCreateFlags _createFlags;
 
 /**
  * @property _lastEvent The last event that occurred and that was delivered to the delegate.
@@ -96,7 +95,7 @@
 /**
  * @property _notificationLatency The latency time of which SCEvents is notified by FSEvents of events. Defaults to 3 seconds.
  */
-@property (readwrite, assign, getter=notificationLatency, setter=setNotificationLatency:) double _notificationLatency;
+@property (readwrite, assign, getter=notificationLatency, setter=setNotificationLatency:) CFTimeInterval _notificationLatency;
 
 /**
  * @property _watchedPaths The paths that are to be watched for events.
@@ -116,8 +115,8 @@
 - (BOOL)flushEventStreamSync;
 - (BOOL)flushEventStreamAsync;
 
-- (BOOL)startWatchingPaths:(NSArray *)paths flags:(FSEventStreamCreateFlags)flags;
-- (BOOL)startWatchingPaths:(NSArray *)paths flags:(FSEventStreamCreateFlags)flags onRunLoop:(NSRunLoop *)runLoop; // flags is typically a | combination of flags. kFSEventStreamCreateFlagNone by default
+- (BOOL)startWatchingPaths:(NSArray *)paths flags:(FSEventStreamCreateFlags)createFlags;
+- (BOOL)startWatchingPaths:(NSArray *)paths flags:(FSEventStreamCreateFlags)createFlags onRunLoop:(NSRunLoop *)runLoop; // flags is typically a | combination of flags. kFSEventStreamCreateFlagNone by default
 
 - (BOOL)stopWatchingPaths;
 

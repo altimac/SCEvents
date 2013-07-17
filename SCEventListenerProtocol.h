@@ -37,7 +37,7 @@
  *
  * SCEvents' event listenser protocol. Delegates must implement this protocol to be notified of events.
  */
-@protocol SCEventListenerProtocol
+@protocol SCEventListenerProtocol <NSObject>
 
 /**
  * Conforming objects' implementation of this method will be called whenever an

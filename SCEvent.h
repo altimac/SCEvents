@@ -36,8 +36,6 @@
 #endif
 
 
-#import "SCConstants.h"
-
 /**
  * @class SCEvent SCEvent.h
  *
@@ -47,7 +45,7 @@
  */
 @interface SCEvent : NSObject 
 {
-    NSUInteger _eventId;
+    FSEventStreamEventId _eventId;
     NSDate *_eventDate;
     NSString *_eventPath;
     FSEventStreamEventFlags _eventFlags;
@@ -56,7 +54,7 @@
 /**
  * @property _eventId The ID of the event.
  */
-@property (readwrite, assign, getter=eventId, setter=setEventId:) NSUInteger _eventId;
+@property (readwrite, assign, getter=eventId, setter=setEventId:) FSEventStreamEventId _eventId;
 
 /**
  * @property _eventDate The date of the event.
@@ -73,12 +71,12 @@
  */
 @property (readwrite, assign, getter=eventFlags, setter=setEventFlags:) FSEventStreamEventFlags _eventFlags;
 
-+ (SCEvent *)eventWithEventId:(NSUInteger)identifier 
++ (SCEvent *)eventWithEventId:(FSEventStreamEventId)identifier
 					eventDate:(NSDate *)date 
 					eventPath:(NSString *)path 
 					eventFlags:(FSEventStreamEventFlags)flags;
 
-- (id)initWithEventId:(NSUInteger)identifier 
+- (id)initWithEventId:(FSEventStreamEventId)identifier 
 			eventDate:(NSDate *)date 
 			eventPath:(NSString *)path 
 			eventFlags:(FSEventStreamEventFlags)flags;
