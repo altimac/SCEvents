@@ -23,9 +23,9 @@ typedef void (^SCEventInterpreterCompletionBlock_block_t)(NSArray *fileOperation
 @property(strong) NSMutableArray *coalescedOperations;
 @property(assign) NSTimeInterval latency;
 @property(copy)  SCEventInterpreterCompletionBlock_block_t completionBlock;
-@property(assign) dispatch_queue_t eventInterpreterProducerDispatchQueue;
-@property(assign) dispatch_semaphore_t operationsBufferReadyDispatchSemaphore;
-@property(assign) dispatch_queue_t eventInterpreterConsumerDispatchQueue;
+@property(strong) dispatch_queue_t eventInterpreterProducerDispatchQueue;
+@property(strong) dispatch_semaphore_t operationsBufferReadyDispatchSemaphore;
+@property(strong) dispatch_queue_t eventInterpreterConsumerDispatchQueue;
 
 @end
 
@@ -51,6 +51,11 @@ typedef void (^SCEventInterpreterCompletionBlock_block_t)(NSArray *fileOperation
     }
     
     return self;
+}
+
+-(void)dealloc
+{
+    _completionBlock = nil;
 }
 
 -(NSArray*)interpretEvents:(NSArray*)scEvents error:(NSError**)error
