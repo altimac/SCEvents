@@ -25,7 +25,7 @@ typedef NS_ENUM(NSUInteger, SCFileSystemOperationType) {
     SCFileSystemOperationRename  = 0x00000010,
 };
 
-@interface SCFileSystemOperation : NSObject
+@interface SCFileSystemOperation : NSObject <NSCoding>
 
 -(id)initWithOldPath:(NSString*)oldPath path:(NSString*)path operationType:(SCFileSystemOperationType)type;
 
@@ -51,5 +51,6 @@ typedef NS_ENUM(NSUInteger, SCFileSystemOperationType) {
 
 @property(assign,readonly) BOOL isDirectory;
 
+-(NSDictionary*)dictionaryRepresentation;
 
 @end

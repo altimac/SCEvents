@@ -10,6 +10,24 @@
 
 @implementation SCFileSystemOperation
 
+- (id)initWithCoder:(NSCoder *)coder
+{
+    self = [super init];
+    if (self) {
+        _oldPath = [coder decodeObjectForKey:@"oldPath"];
+        _path = [coder decodeObjectForKey:@"path"];
+        _operationType = [[coder decodeObjectForKey:@"operationType"] unsignedIntegerValue];
+    }
+    return self;
+}
+
+-(void)encodeWithCoder:(NSCoder *)aCoder
+{
+    [aCoder encodeObject:_oldPath forKey:@"oldPath"];
+    [aCoder encodeObject:_path forKey:@"path"];
+    [aCoder encodeObject:@(_operationType) forKey:@"operationType"];
+}
+
 -(id)initWithOldPath:(NSString*)oldPath path:(NSString*)path operationType:(SCFileSystemOperationType)type;
 {
     self = [super init];
@@ -32,6 +50,19 @@
     };
     
     return isDir;
+}
+
+-(NSDictionary*)dictionaryRepresentation
+{
+    NSMutableDictionary *dictRep = [NSMutableDictionary dictionaryWithCapacity:3];
+    
+    dictRep[@"operationType"] = @(_operationType);
+    if(_oldPath)
+        dictRep[@"oldPath"] = _oldPath;
+    if(_path)
+        dictRep[@"path"] = _path;
+    
+    return dictRep;
 }
 
 -(NSString *)description
