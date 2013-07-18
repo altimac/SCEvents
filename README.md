@@ -5,6 +5,18 @@ Mods made to mz2's original code:
 - optimized code (NSSet vs NSArray, and misuse of conformsToProtocol: method). This is a required protocol method so compiler checked the conformance for us...
 - You now have to pass some flags (or 0) to the startWatchingPaths:... methods
 in order to modify the way the stream is created.
+
+- Bugs :
+- It happens sometimes, that using the Finder only, not the CLI. Creating a new file (not folder) by copying in the watched paths generates a "Create" FS operation twice. I still can't find a way to fix that.
+- The Cocoa atomic way of saving NSDocuments is a real pain in the ass for low level file watcher. Many files are created on disk and generates noisy events such as :
+"/Users/aure/FSEventsTests/screen_express.png.sb-aea45de4-lDI8sH.sb-aea45de4-KiYT7z" then
+"/Users/aure/FSEventsTests/screen_express.png.sb-aea45de4-lDI8sH" then
+"/Users/aure/FSEventsTests/screen_express.png"
+They are of course all the same file, but I can't find a way to robustly determine that. Remember the temporary files are not present on disk anymore when we get those events, so we can only use file name to determine such temporariness... Good luck.
+
+The idea may be to use a delegate in the interpreter to ask the developer if this file is temporary or not. He knows his file naming better than us, and may state on the temporariness of those files
+
+There are litterally much less problems with CLI file creation as it is more straightforward.
 ===
 
 
