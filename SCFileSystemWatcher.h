@@ -107,16 +107,36 @@
  */
 @property (readwrite, strong, getter=excludedPaths, setter=setExcludedPaths:) NSSet *_excludedPaths;
 
-/**
- * @property _resumeFromEventId The event ID from which to resume from when the stream is started.
- */
-@property (readwrite, assign, getter=resumeFromEventId, setter=setResumeFromEventId:) FSEventStreamEventId _resumeFromEventId;
-
 - (BOOL)flushEventStreamSync;
 - (BOOL)flushEventStreamAsync;
 
-- (BOOL)startWatchingPaths:(NSArray *)paths flags:(FSEventStreamCreateFlags)createFlags;
-- (BOOL)startWatchingPaths:(NSArray *)paths flags:(FSEventStreamCreateFlags)createFlags onRunLoop:(NSRunLoop *)runLoop; // flags is typically a | combination of flags. kFSEventStreamCreateFlagNone by default
+/**
+ * Starts watching the supplied array of paths for events on the current run loop.
+ *
+ * @param paths An array of paths to watch
+ * @param flags a bitwise union of flags to pass to the stream. Typically kFSEventStreamCreateFlagIgnoreSelf|kFSEventStreamCreateFlagFileEvents
+ * @param sinceWhen 0 means from the begining of time... Typically pass the last eventEvent eventId value or kFSEventStreamEventIdSinceNow
+ *
+ * @return A BOOL indicating the success or failure
+ */
+
+- (BOOL)startWatchingPaths:(NSArray *)paths flags:(FSEventStreamCreateFlags)createFlags since:(FSEventStreamEventId)sinceWhen;
+
+/**
+ * Starts watching the supplied array of paths for events on the supplied run loop.
+ * A boolean value is returned to indicate the success of starting the stream. If
+ * there are no paths to watch or the stream is already running then false is
+ * returned.
+ *
+ * @param paths   An array of paths to watch
+ * @param flags a bitwise union of flags to pass to the stream. Typically kFSEventStreamCreateFlagIgnoreSelf|kFSEventStreamCreateFlagFileEvents
+ * @param sinceWhen 0 means from the begining of time... Typically pass the last eventEvent eventId value or kFSEventStreamEventIdSinceNow
+ * @param runLoop The runloop the events stream is to be scheduled on
+ *
+ * @return A BOOL indicating the success or failure
+ */
+
+- (BOOL)startWatchingPaths:(NSArray *)paths flags:(FSEventStreamCreateFlags)createFlags since:(FSEventStreamEventId)sinceWhe onRunLoop:(NSRunLoop *)runLoop;
 
 - (BOOL)stopWatchingPaths;
 

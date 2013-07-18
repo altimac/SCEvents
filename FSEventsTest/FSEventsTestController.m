@@ -27,7 +27,7 @@ static UInt64 global_operation_counter = 0;
     self.watcher = [[SCFileSystemWatcher alloc] init];
     self.watcher.notificationLatency = 2.0;
     [self.watcher setDelegate:self];
-    [self.watcher startWatchingPaths:@[mypath,trashPath] flags:kFSEventStreamCreateFlagFileEvents];
+    [self.watcher startWatchingPaths:@[mypath,trashPath] flags:kFSEventStreamCreateFlagFileEvents since:kFSEventStreamEventIdSinceNow];
     
     self.interpreter = [[SCEventInterpreter alloc] initWithPathes:@[mypath] trashPath:trashPath];
     self.interpreter.ignoreTrashInterpretationErrors = YES;

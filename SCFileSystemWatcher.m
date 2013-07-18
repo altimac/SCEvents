@@ -64,7 +64,6 @@ static void events_callback(ConstFSEventStreamRef streamRef,
 @synthesize _notificationLatency;
 @synthesize _watchedPaths;
 @synthesize _excludedPaths;
-@synthesize _resumeFromEventId;
 
 #pragma mark -
 #pragma mark Initialisation
@@ -81,7 +80,6 @@ static void events_callback(ConstFSEventStreamRef streamRef,
 		
         _eventsQueue = dispatch_queue_create("scevents.queue", 0);
         
-		[self setResumeFromEventId:kFSEventStreamEventIdSinceNow];
         _createFlags = kFSEventStreamCreateFlagNone;
         [self setNotificationLatency:3.0]; // defaults to 3s
         [self setIgnoreEventsFromSubDirs:NO];
@@ -127,30 +125,12 @@ static void events_callback(ConstFSEventStreamRef streamRef,
     return YES;
 }
 
-/**
- * Starts watching the supplied array of paths for events on the current run loop.
- *
- * @param paths An array of paths to watch
- *
- * @return A BOOL indicating the success or failure
- */
-- (BOOL)startWatchingPaths:(NSArray *)paths flags:(FSEventStreamCreateFlags)createFlags;
+- (BOOL)startWatchingPaths:(NSArray *)paths flags:(FSEventStreamCreateFlags)createFlags since:(FSEventStreamEventId)sinceWhen; //0 means from the begining of time. Typically pass the last eventEvent eventId or kFSEventStreamEventIdSinceNow
 {
-    return [self startWatchingPaths:paths flags:createFlags onRunLoop:[NSRunLoop currentRunLoop]];
+    return [self startWatchingPaths:paths flags:createFlags since:sinceWhen onRunLoop:[NSRunLoop currentRunLoop]];
 }
 
-/**
- * Starts watching the supplied array of paths for events on the supplied run loop.
- * A boolean value is returned to indicate the success of starting the stream. If 
- * there are no paths to watch or the stream is already running then false is
- * returned.
- *
- * @param paths   An array of paths to watch
- * @param runLoop The runloop the events stream is to be scheduled on
- *
- * @return A BOOL indicating the success or failure
- */
-- (BOOL)startWatchingPaths:(NSArray *)paths flags:(FSEventStreamCreateFlags)createFlags onRunLoop:(NSRunLoop *)runLoop
+- (BOOL)startWatchingPaths:(NSArray *)paths flags:(FSEventStreamCreateFlags)createFlags since:(FSEventStreamEventId)sinceWhen onRunLoop:(NSRunLoop *)runLoop; // flags is typically a | combination of flags. kFSEventStreamCreateFlagNone by default
 {
     if (([paths count] == 0) || (_isWatchingPaths)) { return NO; }
     
@@ -160,7 +140,7 @@ static void events_callback(ConstFSEventStreamRef streamRef,
         
         [self setWatchedPaths:paths];
         
-        _eventStream = create_events_stream(self, ((__bridge CFArrayRef)_watchedPaths), createFlags, _notificationLatency, _resumeFromEventId);
+        _eventStream = create_events_stream(self, ((__bridge CFArrayRef)_watchedPaths), createFlags, _notificationLatency, sinceWhen);
         
         // Schedule the event stream on the supplied run loop
         FSEventStreamScheduleWithRunLoop(_eventStream, _runLoop, kCFRunLoopDefaultMode);
