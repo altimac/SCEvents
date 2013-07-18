@@ -29,6 +29,9 @@
         NSMutableArray *fixedArray = [NSMutableArray arrayWithArray:watchPathes];
         [fixedArray removeObject:trashPath];
         _watchPathes = [[NSArray alloc] initWithArray:fixedArray];
+        _ignoreTrashInterpretationErrors = YES;
+        _ignoreDotFiles = YES;
+        _ignoreActivitiesInDotFolders = YES;
         
         NSParameterAssert([_watchPathes count] > 0);
     }
@@ -47,8 +50,12 @@
         SCFileSystemOperation *operation = [self operationFromEvents:remainingEvents consumedEventIndexes:&consumedEventIndexes error:error];
         if(!operation)
             return nil;
+
+        if(operation != (SCFileSystemOperation*)[NSNull null]) // Don't generate error and silently fails interpretation, skip to next events.
+        {
+            [operations addObject:operation];
+        }
         
-        [operations addObject:operation];
         [remainingEvents removeObjectsAtIndexes:consumedEventIndexes];
     }
     
@@ -63,10 +70,26 @@
     NSString *path = nil;
     
     SCEvent *firstEvent = events[0];
-    FSEventStreamEventFlags fistEventFlags = [events[0] eventFlags];
+    FSEventStreamEventFlags firstEventFlags = [events[0] eventFlags];
     
-    if(fistEventFlags & kFSEventStreamEventFlagItemCreated                                &&
-       (fistEventFlags & kFSEventStreamEventFlagItemRenamed) == 0                         &&
+    if([[[firstEvent eventPath] lastPathComponent] hasPrefix:@"."] && _ignoreDotFiles == YES) // if file starts by a .
+    {
+        *consumedEventIndexes = [NSIndexSet indexSetWithIndex:0];
+        return (SCFileSystemOperation*)[NSNull null]; // Don't generate error and silently fails interpretation.
+    }
+    
+    // if we're there's a folder in the path that starts by a .
+    for(NSString *pathComponent in [[firstEvent eventPath] pathComponents])
+    {
+        if([pathComponent hasPrefix:@"."] && ![pathComponent isEqualToString:[_trashPath lastPathComponent]] && _ignoreActivitiesInDotFolders == YES)
+        {
+            *consumedEventIndexes = [NSIndexSet indexSetWithIndex:0];
+            return (SCFileSystemOperation*)[NSNull null]; // Don't generate error and silently fails interpretation.
+        }
+    }
+    
+    if((firstEventFlags & kFSEventStreamEventFlagItemCreated)                              &&
+       (firstEventFlags & kFSEventStreamEventFlagItemRenamed) == 0                         &&
        [[firstEvent eventURL] checkResourceIsReachableAndReturnError:nil] == YES
        )
     {
@@ -75,7 +98,7 @@
         oldPath = nil;
         path = [firstEvent eventPath];
     }
-    else if(fistEventFlags & kFSEventStreamEventFlagItemRemoved                               /*&&
+    else if(firstEventFlags & kFSEventStreamEventFlagItemRemoved                               /*&&
                                                                                                [[initiator eventURL] checkResourceIsReachableAndReturnError:nil] == NO*/ // check the file is really deleted by not being there?
             )
     {
@@ -84,18 +107,36 @@
         oldPath = [firstEvent eventPath];
         path = nil;
     }
-    
-    if([events count] <= 1)
+   
+    // if operation is still unknown and there are no more events to continue interpretation, then it's a failure
+    if((type == SCFileSystemOperationUnknown) && ([events count] <= 1))
     {
-        if(error)
+        if([_trashPath length] > 0 && [[firstEvent eventPath] hasPrefix:_trashPath] && _ignoreTrashInterpretationErrors)
         {
-            *error = [NSError errorWithDomain:@"com.scevent.interpreter" code:SCEVENT_NOT_ENOUGH_EVENT_ERROR_CODE userInfo:@{NSLocalizedDescriptionKey : @"There is not enough events to interpret the file system operation. Concatenate with the next batch?"}];
+            *consumedEventIndexes = [NSIndexSet indexSetWithIndex:0];
+            return (SCFileSystemOperation*)[NSNull null]; // means it's a trash events that can't be interpreted. Don't generate error and silently fails interpretation.
         }
-        
-        return nil;
+        else if((firstEventFlags & kFSEventStreamEventFlagItemRenamed))
+        {
+            // if there is no other event, then it can be a move outgoing
+            type = [[firstEvent eventURL] checkResourceIsReachableAndReturnError:nil] ? SCFileSystemOperationMoveIncoming : SCFileSystemOperationMoveOutgoing;
+            type |= SCFileSystemOperationMove;
+            oldPath = [firstEvent eventPath];
+            path = nil;
+            
+            *consumedEventIndexes = [NSIndexSet indexSetWithIndex:0];
+        }
+        else
+        {
+            if(error)
+                *error = [NSError errorWithDomain:@"com.scevent.interpreter" code:SCEVENT_NOT_ENOUGH_EVENT_ERROR_CODE userInfo:@{NSLocalizedDescriptionKey : @"There is not enough events to interpret the file system operation. Concatenate with the next batch?"}];
+            
+            return nil;
+        }
     }
     
-    if(fistEventFlags & kFSEventStreamEventFlagItemRenamed)
+    // if operation is still unknown and first event is flagged kFSEventStreamEventFlagItemRenamed
+    if((type == SCFileSystemOperationUnknown) && (firstEventFlags & kFSEventStreamEventFlagItemRenamed))
     {
         type = SCFileSystemOperationUnknown;
         
@@ -123,19 +164,28 @@
                 // if both file parent's folder are different, then it's a move withing watched path
                 if(![[[firstEvent eventURL] URLByDeletingLastPathComponent] isEqual:[[nextEvent eventURL] URLByDeletingLastPathComponent]])
                 {
-                    // if destination is trash (and source is not trash itself!)
-                    if([[nextEvent eventPath] hasPrefix:_trashPath] && ![[firstEvent eventPath] hasPrefix:_trashPath])
+                    type |= SCFileSystemOperationMove;
+                    
+                    if([_trashPath length] > 0)
                     {
-                        type |= SCFileSystemOperationMoveToTrash;
+                        // if destination is trash (and source is not trash itself!)
+                        if([[nextEvent eventPath] hasPrefix:_trashPath] && ![[firstEvent eventPath] hasPrefix:_trashPath])
+                        {
+                            type |= SCFileSystemOperationMoveToTrash;
+                        }
+                        // if source is trash (and and destination is anywhere else)
+                        else if([[firstEvent eventPath] hasPrefix:_trashPath] && ![[nextEvent eventPath] hasPrefix:_trashPath])
+                        {
+                            type |= SCFileSystemOperationResurectFromTrash;
+                            
+                            // NOTE: should we declare SCFileSystemOperationMoveIncoming or even SCFileSystemOperationCreate if the destination path is one of the watched path ?
+                        }
+                        // else it's just a move between watched pathes!
+                        else
+                        {
+                            type |= SCFileSystemOperationMoveWithin;
+                        }
                     }
-                    // if source is trash (and and destination is anywhere else)
-                    else if([[firstEvent eventPath] hasPrefix:_trashPath] && ![[nextEvent eventPath] hasPrefix:_trashPath])
-                    {
-                        type |= SCFileSystemOperationResurectFromTrash;
-                        
-                        // NOTE: should we declare SCFileSystemOperationMoveIncoming or even SCFileSystemOperationCreate if the destination path is one of the watched path ?
-                    }
-                    // else it's just a move between watched pathes!
                     else
                     {
                         type |= SCFileSystemOperationMoveWithin;
@@ -150,9 +200,11 @@
                     )
             {
                 type = SCFileSystemOperationMoveIncoming;
+                type |= SCFileSystemOperationMove;
                 oldPath = nil;
                 path = [firstEvent eventPath];
                 
+                *consumedEventIndexes = [NSIndexSet indexSetWithIndex:0];
             }
             // if we can't see both events as an atomic operation but the file does not exists in watched path, then it's outgoing!
             else if(nextEventId != firstEventId+1                                              &&
@@ -160,8 +212,11 @@
                     )
             {
                 type = SCFileSystemOperationMoveOutgoing;
+                type |= SCFileSystemOperationMove;
                 oldPath = [firstEvent eventPath];
                 path = nil;
+                
+                *consumedEventIndexes = [NSIndexSet indexSetWithIndex:0];
             }
         }
     }

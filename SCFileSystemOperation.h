@@ -10,16 +10,18 @@
 
 typedef NS_ENUM(NSUInteger, SCFileSystemOperationType) {
     SCFileSystemOperationUnknown = 0x00000000,
-	SCFileSystemOperationCreate = 0x00000001,
-	SCFileSystemOperationRename = 0x00000002,
-    SCFileSystemOperationMove         = 0x10000000,
-	SCFileSystemOperationMoveWithin   = 0x10100000,
-    SCFileSystemOperationMoveIncoming = 0x10200000,
-    SCFileSystemOperationMoveOutgoing = 0x10400000,
-    SCFileSystemOperationMoveToTrash  = 0x10800000 , // moved to trash, but not deleted from disk yet
-    SCFileSystemOperationResurectFromTrash  = 0x11000000 , // in the trash and moved anywhere else!
-	SCFileSystemOperationCopy = 0x00000004,
-	SCFileSystemOperationDelete = 0x00000080, // completely deleted from disk
+	SCFileSystemOperationCreate  = 0x00000001,
+    SCFileSystemOperationDelete  = 0x00000002, // completely deleted from disk
+    SCFileSystemOperationCopy    = 0x00000004, // impossible to detect?
+    
+    SCFileSystemOperationMove              = 0x01000000, // Move acts as a mask for other type of move
+	SCFileSystemOperationMoveWithin        = 0x00010000,
+    SCFileSystemOperationMoveIncoming      = 0x00020000,
+    SCFileSystemOperationMoveOutgoing      = 0x00040000,
+    SCFileSystemOperationMoveToTrash       = 0x00080000 , // moved to trash, but not deleted from disk yet
+    SCFileSystemOperationResurectFromTrash = 0x00100000 , // in the trash and moved anywhere else! it's a move!
+    
+    SCFileSystemOperationRename  = 0x00000008,
 };
 
 @interface SCFileSystemOperation : NSObject

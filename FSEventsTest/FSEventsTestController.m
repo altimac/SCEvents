@@ -2,6 +2,8 @@
 
 #include <CoreServices/CoreServices.h>
 #import "SCFileSystemWatcher.h"
+#import "SCEventInterpreter.h"
+#import "SCFileSystemOperation.h"
 #import "SCEvent.h"
 
 #define WATCHED_PATH @"/Volumes/Data/Users/aure/FSEventsTests/"
@@ -22,11 +24,33 @@
     [self.watcher setDelegate:self];    
     [self.watcher startWatchingPaths:@[mypath,trashPath] flags:kFSEventStreamCreateFlagFileEvents];
     
+    self.interpreter = [[SCEventInterpreter alloc] initWithPathes:@[mypath] trashPath:trashPath];
+    self.interpreter.ignoreTrashInterpretationErrors = YES;
+    
 }
 
 - (void)pathWatcher:(SCFileSystemWatcher *)pathWatcher eventOccurred:(SCEvent *)event
 {
     NSLog(@"SCEvent:%@",event);
 }
+
+- (void)pathWatcher:(SCFileSystemWatcher *)pathWatcher eventsOccurred:(NSArray *)events
+{
+    NSError *error;
+    NSArray *operations = [self.interpreter interpretEvents:events error:&error];
+    if(!operations)
+    {
+        NSLog(@"Error occured during FS events interpretation:%@",error);
+    }
+    else
+    {
+        NSUInteger i = 0;
+        for (SCFileSystemOperation *op in operations) {
+            NSLog(@"Operation%ld:%@",i,op);
+            i++;
+        }
+    }
+}
+
 
 @end

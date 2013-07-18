@@ -348,13 +348,16 @@ static void events_callback(ConstFSEventStreamRef streamRef,
             
             if([[pathWatcher delegate] respondsToSelector:@selector(pathWatcher:eventOccurred:)])
                 [[pathWatcher delegate] pathWatcher:pathWatcher eventOccurred:event];
-            
-            [[pathWatcher delegate] pathWatcher:pathWatcher eventsOccurred:batchedEvents];
                 
             if (i == (numEvents - 1)) {
                 [pathWatcher setLastEvent:event];
             }
         }
+    }
+    
+    if([batchedEvents count] > 0)
+    {
+        [[pathWatcher delegate] pathWatcher:pathWatcher eventsOccurred:batchedEvents];
     }
 }
 
