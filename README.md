@@ -14,9 +14,11 @@ in order to modify the way the stream is created.
 "/Users/aure/FSEventsTests/screen_express.png"
 They are of course all the same file, but I can't find a way to robustly determine that. Remember the temporary files are not present on disk anymore when we get those events, so we can only use file name to determine such temporariness... Good luck.
 
-The idea may be to use a delegate in the interpreter to ask the developer if this file is temporary or not. He knows his file naming better than us, and may state on the temporariness of those files
+- I've implemented, but not used, a complex way to buffer created file operations and do coalescing to fix such problems. This buffer adds latency so that we can merge some operations to only keep the useful ones.
+- Another idea may be to use a delegate in the coalescing to ask the developer if this file is temporary or not. He knows his file naming better than us, and may state on the temporariness of those files
 
 There are litterally much less problems with CLI file creation as it is more straightforward.
+
 ===
 
 
