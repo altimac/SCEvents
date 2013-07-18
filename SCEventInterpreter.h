@@ -23,6 +23,11 @@
 // returns SCFileSystemOperation objects. The count of returned array may not match the count of scEvents. Usually several events are necessary to be consumed to interpret them as a high level file operation.
 // You should never interpret SCEvent one by one. A succession of *ordered* SCEvent makes interpretation much more correct. You typically pass the batches of SCEvents you got from coalesced FSEvents callbacks
 -(NSArray*)interpretEvents:(NSArray*)scEvents error:(NSError**)error;
-//-(void)asyncInterpretEvents:(NSArray*)scEvents completionBlock:(void (^)(NSArray *scEvents, NSArray *fileOperations, NSError* error))completionBlock; // same as above, but async call. If error occured, fileOperations is nil and error is filled.
+
+// this call is reentrant. You can typically call it when you got events to interprets. Only the last completionBlock set will be executed. The fileOperations array will contain all file operations waiting to be delivered since last completionBlock execution.
+// latency is the limit at which the completionBlock will be called. Around 2 or 3 seconds is a good latency.
+// the mail advantage of this method is that it coalesce FS operations to avoid useless ones (such as atomic write of Cocoa which creates a copy of the target file, write on the target and if it succeed, deletes the copy... 3 FS operations for what should be a single Modification FS operation...)
+// If error occured, fileOperations is nil and error is filled.
+-(void)asyncInterpretEvents:(NSArray*)scEvents latency:(NSTimeInterval)latency completionBlock:(void (^)(NSArray *fileOperations, NSError* error))completionBlock;
 
 @end

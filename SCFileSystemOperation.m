@@ -50,6 +50,7 @@
     
     if (type & SCFileSystemOperationCreate) [typeAsString appendString:@"|SCFileSystemOperationCreate"];
     if (type & SCFileSystemOperationDelete) [typeAsString appendString:@"|SCFileSystemOperationDelete"];
+    if (type & SCFileSystemOperationModification) [typeAsString appendString:@"|SCFileSystemOperationModification"];
     if (type & SCFileSystemOperationCopy) [typeAsString appendString:@"|SCFileSystemOperationCopy"]; 
 
     if (type & SCFileSystemOperationMove) [typeAsString appendString:@"|SCFileSystemOperationMove"];

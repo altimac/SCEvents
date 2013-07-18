@@ -11,10 +11,21 @@
 #import "SCEvent.h"
 #import "SCFileSystemOperation.h"
 
+typedef void (^SCEventInterpreterCompletionBlock_block_t)(NSArray *fileOperations, NSError* error);
+
+
 @interface SCEventInterpreter ()
 
 @property(strong) NSArray *watchPathes;
 @property(strong) NSString *trashPath;
+
+@property(strong) NSMutableArray *operationsBuffer;
+@property(strong) NSMutableArray *coalescedOperations;
+@property(assign) NSTimeInterval latency;
+@property(copy)  SCEventInterpreterCompletionBlock_block_t completionBlock;
+@property(assign) dispatch_queue_t eventInterpreterProducerDispatchQueue;
+@property(assign) dispatch_semaphore_t operationsBufferReadyDispatchSemaphore;
+@property(assign) dispatch_queue_t eventInterpreterConsumerDispatchQueue;
 
 @end
 
@@ -33,6 +44,9 @@
         _ignoreDotFiles = YES;
         _ignoreActivitiesInDotFolders = YES;
         
+        _operationsBuffer = [[NSMutableArray alloc] init];
+        _coalescedOperations = [[NSMutableArray alloc] init];
+        
         NSParameterAssert([_watchPathes count] > 0);
     }
     
@@ -50,7 +64,7 @@
         SCFileSystemOperation *operation = [self operationFromEvents:remainingEvents consumedEventIndexes:&consumedEventIndexes error:error];
         if(!operation)
             return nil;
-
+        
         if(operation != (SCFileSystemOperation*)[NSNull null]) // Don't generate error and silently fails interpretation, skip to next events.
         {
             [operations addObject:operation];
@@ -88,27 +102,30 @@
         }
     }
     
-    if((firstEventFlags & kFSEventStreamEventFlagItemCreated)                              &&
-       (firstEventFlags & kFSEventStreamEventFlagItemRenamed) == 0                         &&
+    BOOL firstEventIsCreatedFlag = (firstEventFlags & kFSEventStreamEventFlagItemCreated) > 0;
+    BOOL firstEventIsRenamedFlag = (firstEventFlags & kFSEventStreamEventFlagItemRenamed) > 0;
+    BOOL firstEventIsModifiedFlag = (firstEventFlags & kFSEventStreamEventFlagItemModified) > 0;
+    BOOL firstEventIsRemovedFlag = (firstEventFlags & kFSEventStreamEventFlagItemRemoved) > 0;
+    
+    if(firstEventIsCreatedFlag                              &&
+       firstEventIsRenamedFlag == NO                        &&
        [[firstEvent eventURL] checkResourceIsReachableAndReturnError:nil] == YES
        )
     {
         type = SCFileSystemOperationCreate;
-        *consumedEventIndexes = [NSIndexSet indexSetWithIndex:0];
         oldPath = nil;
         path = [firstEvent eventPath];
+        *consumedEventIndexes = [NSIndexSet indexSetWithIndex:0];
     }
-    else if(firstEventFlags & kFSEventStreamEventFlagItemRemoved                               /*&&
-                                                                                               [[initiator eventURL] checkResourceIsReachableAndReturnError:nil] == NO*/ // check the file is really deleted by not being there?
-            )
+    else if(firstEventIsRemovedFlag)
     {
         type = SCFileSystemOperationDelete;
-        *consumedEventIndexes = [NSIndexSet indexSetWithIndex:0];
         oldPath = [firstEvent eventPath];
         path = nil;
+        *consumedEventIndexes = [NSIndexSet indexSetWithIndex:0];
     }
-   
-    // if operation is still unknown and there are no more events to continue interpretation, then it's a failure
+    
+    // if operation is still unknown and there are no more events to continue interpretation
     if((type == SCFileSystemOperationUnknown) && ([events count] <= 1))
     {
         if([_trashPath length] > 0 && [[firstEvent eventPath] hasPrefix:_trashPath] && _ignoreTrashInterpretationErrors)
@@ -116,14 +133,30 @@
             *consumedEventIndexes = [NSIndexSet indexSetWithIndex:0];
             return (SCFileSystemOperation*)[NSNull null]; // means it's a trash events that can't be interpreted. Don't generate error and silently fails interpretation.
         }
-        else if((firstEventFlags & kFSEventStreamEventFlagItemRenamed))
+        else if(firstEventIsCreatedFlag)
+        {
+            // it is a create
+            type = SCFileSystemOperationCreate;
+            oldPath = nil;
+            path = [firstEvent eventPath];
+            *consumedEventIndexes = [NSIndexSet indexSetWithIndex:0];
+        }
+        else if(firstEventIsRenamedFlag)
         {
             // if there is no other event, then it can be a move outgoing
-            type = [[firstEvent eventURL] checkResourceIsReachableAndReturnError:nil] ? SCFileSystemOperationMoveIncoming : SCFileSystemOperationMoveOutgoing;
+            BOOL resourceInWatchedPathes = [[firstEvent eventURL] checkResourceIsReachableAndReturnError:nil];
+            type = resourceInWatchedPathes ? SCFileSystemOperationMoveIncoming : SCFileSystemOperationMoveOutgoing;
             type |= SCFileSystemOperationMove;
-            oldPath = [firstEvent eventPath];
-            path = nil;
-            
+            oldPath = resourceInWatchedPathes ? nil : [firstEvent eventPath];
+            path = resourceInWatchedPathes ? [firstEvent eventPath] : nil;
+            *consumedEventIndexes = [NSIndexSet indexSetWithIndex:0];
+        }
+        else if(firstEventIsModifiedFlag)
+        {
+            // if there is no other event, then it can be a modification
+            type = SCFileSystemOperationModification;
+            oldPath = nil;
+            path = [firstEvent eventPath];
             *consumedEventIndexes = [NSIndexSet indexSetWithIndex:0];
         }
         else
@@ -135,8 +168,8 @@
         }
     }
     
-    // if operation is still unknown and first event is flagged kFSEventStreamEventFlagItemRenamed
-    if((type == SCFileSystemOperationUnknown) && (firstEventFlags & kFSEventStreamEventFlagItemRenamed))
+    // if operation is still unknown and first event is flagged kFSEventStreamEventFlagItemRenamed but there are other events in the queue
+    if((type == SCFileSystemOperationUnknown) && firstEventIsRenamedFlag)
     {
         type = SCFileSystemOperationUnknown;
         
@@ -145,7 +178,9 @@
         FSEventStreamEventId nextEventId = [nextEvent eventId];
         FSEventStreamEventFlags nextEventFlags = [nextEvent eventFlags];
         
-        if(nextEventFlags & kFSEventStreamEventFlagItemRenamed) // if flag renamed
+        BOOL nextEventIsRenamedFlag = (nextEventFlags & kFSEventStreamEventFlagItemRenamed) > 0;
+        
+        if(nextEventIsRenamedFlag)
         {
             if(nextEventId == firstEventId+1                                             &&
                [[nextEvent eventURL] checkResourceIsReachableAndReturnError:nil] == YES // if both events are an atomic operation and the NEXT event file exists
@@ -221,9 +256,111 @@
         }
     }
     
+    // If we didn't interpret anything, then at least consume the first event.
+    if(type == SCFileSystemOperationUnknown)
+    {
+        path = [firstEvent eventPath];
+        *consumedEventIndexes = [NSIndexSet indexSetWithIndex:0];
+    }
+    
     operation = [[SCFileSystemOperation alloc] initWithOldPath:oldPath path:path operationType:type];
     
     return operation;
+}
+
+-(void)asyncInterpretEvents:(NSArray*)scEvents latency:(NSTimeInterval)latency completionBlock:(void (^)(NSArray *fileOperations, NSError* error))completionBlock; // same as above, but async call. If error occured, fileOperations is nil and error is filled.
+{
+    NSParameterAssert(latency > 0);
+    self.latency = latency;
+    
+    if(_eventInterpreterConsumerDispatchQueue == NULL)
+    {
+        [self setupConsumer];
+    }
+    
+    if(_eventInterpreterProducerDispatchQueue == NULL)
+    {
+        _eventInterpreterProducerDispatchQueue = dispatch_queue_create("com.sceventinterpreter.producer", DISPATCH_QUEUE_SERIAL);
+    }
+    
+    if(_operationsBufferReadyDispatchSemaphore == NULL)
+    {
+        _operationsBufferReadyDispatchSemaphore = dispatch_semaphore_create(0);
+    }
+    
+    self.completionBlock = completionBlock;
+    
+    dispatch_async(_eventInterpreterProducerDispatchQueue, ^{
+        
+        NSError *error;
+        NSArray *interpretedOperations = [self interpretEvents:scEvents error:&error];
+        if(!interpretedOperations)
+        {
+            NSLog(@"%s - failed to interpret events. Dropping the events! - error:%@",__PRETTY_FUNCTION__,error);
+        }
+        else
+        {
+            @synchronized(_operationsBuffer)
+            {
+                [_operationsBuffer addObjectsFromArray:interpretedOperations];
+            }
+            
+            dispatch_semaphore_signal(_operationsBufferReadyDispatchSemaphore);
+        }
+    });
+}
+
+-(void)setupConsumer
+{
+    _eventInterpreterConsumerDispatchQueue = dispatch_queue_create("com.sceventinterpreter.consumer", DISPATCH_QUEUE_SERIAL);
+    
+    dispatch_async(_eventInterpreterConsumerDispatchQueue, ^{
+        
+        while(1)
+        {
+            NSArray *operationsToCoalesce = nil;
+            
+            long timeout = dispatch_semaphore_wait(_operationsBufferReadyDispatchSemaphore, dispatch_time(DISPATCH_TIME_NOW, (int64_t)(self.latency * (NSTimeInterval)NSEC_PER_SEC)));
+            if(!timeout)
+            {
+                @synchronized(_operationsBuffer)
+                {
+                    operationsToCoalesce = [NSArray arrayWithArray:_operationsBuffer];
+                    [_operationsBuffer removeAllObjects];
+                }
+                
+                NSError *error;
+                NSArray *tmpCoalescedOperations = [self coalesceOperations:operationsToCoalesce error:&error];
+                
+                if(!tmpCoalescedOperations)
+                {
+                    dispatch_async(dispatch_get_main_queue(), ^{
+                        if(self.completionBlock)
+                            self.completionBlock(tmpCoalescedOperations,error);
+                    });
+                }
+                else
+                {
+                    [_coalescedOperations addObjectsFromArray:tmpCoalescedOperations];
+                }
+            }
+            else
+            {
+                NSArray *tmpCoalescedOperations = [NSArray arrayWithArray:_coalescedOperations];
+                [_coalescedOperations removeAllObjects];
+                
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    if(self.completionBlock)
+                        self.completionBlock(tmpCoalescedOperations,nil);
+                });
+            }
+        }
+    });
+}
+
+-(NSArray *)coalesceOperations:(NSArray*)fsOperations error:(NSError**)error
+{
+    return fsOperations;
 }
 
 @end
