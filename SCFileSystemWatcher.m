@@ -141,6 +141,10 @@ static void events_callback(ConstFSEventStreamRef streamRef,
         [self setWatchedPaths:paths];
         
         _eventStream = create_events_stream(self, ((__bridge CFArrayRef)_watchedPaths), createFlags, _notificationLatency, sinceWhen);
+        if(!_eventStream)
+        {
+            NSLog(@"%s - %@ failed to create FSEventStream! (createFlags:%u, sinceWhen:%lld)",__PRETTY_FUNCTION__,self,(unsigned int)createFlags,sinceWhen);
+        }
         
         // Schedule the event stream on the supplied run loop
         FSEventStreamScheduleWithRunLoop(_eventStream, _runLoop, kCFRunLoopDefaultMode);

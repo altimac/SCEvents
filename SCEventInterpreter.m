@@ -288,11 +288,6 @@ typedef void (^SCEventInterpreterCompletionBlock_block_t)(NSArray *fileOperation
         _eventInterpreterProducerDispatchQueue = dispatch_queue_create("com.sceventinterpreter.producer", DISPATCH_QUEUE_SERIAL);
     }
     
-    if(_operationsBufferReadyDispatchSemaphore == NULL)
-    {
-        _operationsBufferReadyDispatchSemaphore = dispatch_semaphore_create(0);
-    }
-    
     self.completionBlock = completionBlock;
     
     dispatch_async(_eventInterpreterProducerDispatchQueue, ^{
@@ -318,6 +313,7 @@ typedef void (^SCEventInterpreterCompletionBlock_block_t)(NSArray *fileOperation
 -(void)setupConsumer
 {
     _eventInterpreterConsumerDispatchQueue = dispatch_queue_create("com.sceventinterpreter.consumer", DISPATCH_QUEUE_SERIAL);
+    _operationsBufferReadyDispatchSemaphore = dispatch_semaphore_create(0);
     
     dispatch_async(_eventInterpreterConsumerDispatchQueue, ^{
         
