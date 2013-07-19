@@ -336,7 +336,7 @@ static void events_callback(ConstFSEventStreamRef streamRef,
             // Apple introduced a bug in FSEventStreamEventFlags. Some bit may be set (the File flags in particular) even if we don't request the kFSEventStreamEventFlagItemCreated when creating the stream!
             // This introduce a bug in our logging system, so we have to mask the FSEventStreamEventFlags to zero most bits excepts the real ones!
             FSEventStreamEventFlags eventFlag = eventFlags[i];
-            if(createFlags < kFSEventStreamEventFlagItemCreated)
+            if((createFlags & kFSEventStreamCreateFlagFileEvents) == 0)
             {
                 eventFlag = (eventFlags[i] & 0x000000FF);
             }
