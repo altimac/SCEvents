@@ -11,6 +11,8 @@
 #import "SCEvent.h"
 #import "SCFileSystemOperation.h"
 
+#define USE_COALESCING 0
+
 typedef void (^SCEventInterpreterCompletionBlock_block_t)(NSArray *fileOperations, NSError* error);
 
 
@@ -58,6 +60,8 @@ typedef void (^SCEventInterpreterCompletionBlock_block_t)(NSArray *fileOperation
     _completionBlock = nil;
 }
 
+#pragma mark - API
+
 -(NSArray*)interpretEvents:(NSArray*)scEvents error:(NSError**)error
 {
     NSMutableArray *operations = [NSMutableArray array];
@@ -80,6 +84,45 @@ typedef void (^SCEventInterpreterCompletionBlock_block_t)(NSArray *fileOperation
     
     return [NSArray arrayWithArray:operations];
 }
+
+-(void)asyncInterpretEvents:(NSArray*)scEvents latency:(NSTimeInterval)latency completionBlock:(void (^)(NSArray *fileOperations, NSError* error))completionBlock; // same as above, but async call. If error occured, fileOperations is nil and error is filled.
+{
+    NSParameterAssert(latency > 0);
+    self.latency = latency;
+    
+    if(_eventInterpreterConsumerDispatchQueue == NULL)
+    {
+        [self setupConsumer];
+    }
+    
+    if(_eventInterpreterProducerDispatchQueue == NULL)
+    {
+        _eventInterpreterProducerDispatchQueue = dispatch_queue_create("com.sceventinterpreter.producer", DISPATCH_QUEUE_SERIAL);
+    }
+    
+    self.completionBlock = completionBlock;
+    
+    dispatch_async(_eventInterpreterProducerDispatchQueue, ^{
+        
+        NSError *error;
+        NSArray *interpretedOperations = [self interpretEvents:scEvents error:&error];
+        if(!interpretedOperations)
+        {
+            NSLog(@"%s - failed to interpret events. Dropping the events! - error:%@",__PRETTY_FUNCTION__,error);
+        }
+        else
+        {
+            @synchronized(_operationsBuffer)
+            {
+                [_operationsBuffer addObjectsFromArray:interpretedOperations];
+            }
+            
+            dispatch_semaphore_signal(_operationsBufferReadyDispatchSemaphore);
+        }
+    });
+}
+
+#pragma mark - Private
 
 -(SCFileSystemOperation*)operationFromEvents:(NSArray*)events consumedEventIndexes:(NSIndexSet**)consumedEventIndexes error:(NSError**)error;
 {
@@ -273,165 +316,147 @@ typedef void (^SCEventInterpreterCompletionBlock_block_t)(NSArray *fileOperation
     return operation;
 }
 
--(void)asyncInterpretEvents:(NSArray*)scEvents latency:(NSTimeInterval)latency completionBlock:(void (^)(NSArray *fileOperations, NSError* error))completionBlock; // same as above, but async call. If error occured, fileOperations is nil and error is filled.
-{
-    NSParameterAssert(latency > 0);
-    self.latency = latency;
-    
-    if(_eventInterpreterConsumerDispatchQueue == NULL)
-    {
-        [self setupConsumer];
-    }
-    
-    if(_eventInterpreterProducerDispatchQueue == NULL)
-    {
-        _eventInterpreterProducerDispatchQueue = dispatch_queue_create("com.sceventinterpreter.producer", DISPATCH_QUEUE_SERIAL);
-    }
-    
-    self.completionBlock = completionBlock;
-    
-    dispatch_async(_eventInterpreterProducerDispatchQueue, ^{
-        
-        NSError *error;
-        NSArray *interpretedOperations = [self interpretEvents:scEvents error:&error];
-        if(!interpretedOperations)
-        {
-            NSLog(@"%s - failed to interpret events. Dropping the events! - error:%@",__PRETTY_FUNCTION__,error);
-        }
-        else
-        {
-            @synchronized(_operationsBuffer)
-            {
-                [_operationsBuffer addObjectsFromArray:interpretedOperations];
-            }
-            
-            dispatch_semaphore_signal(_operationsBufferReadyDispatchSemaphore);
-        }
-    });
-}
+#pragma mark -- for async call
 
 -(void)setupConsumer
 {
     _eventInterpreterConsumerDispatchQueue = dispatch_queue_create("com.sceventinterpreter.consumer", DISPATCH_QUEUE_SERIAL);
     _operationsBufferReadyDispatchSemaphore = dispatch_semaphore_create(0);
     
-    dispatch_async(_eventInterpreterConsumerDispatchQueue, ^{
-        
+    // run an infinite loop in background for the consumer.
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
         while(1)
         {
-            NSArray *operationsToCoalesce = nil;
+            // but we want work to be done on the consumer serial queue!
+            dispatch_semaphore_wait(_operationsBufferReadyDispatchSemaphore, DISPATCH_TIME_FOREVER); // after the latency delay. We wait for the semaphore.
             
-            long timeout = dispatch_semaphore_wait(_operationsBufferReadyDispatchSemaphore, dispatch_time(DISPATCH_TIME_NOW, (int64_t)(self.latency * (NSTimeInterval)NSEC_PER_SEC)));
-            if(!timeout)
-            {
-                @synchronized(_operationsBuffer)
-                {
-                    operationsToCoalesce = [NSArray arrayWithArray:_operationsBuffer];
-                    [_operationsBuffer removeAllObjects];
-                }
+            // we want to let some latency before executing so consumer work, because we want the producer to push large chunks of events -> dispatch_after
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(self.latency * NSEC_PER_SEC)), _eventInterpreterConsumerDispatchQueue, ^{
                 
-                NSError *error;
-                NSArray *tmpCoalescedOperations = [self coalesceOperations:operationsToCoalesce error:&error];
-                
-                if(!tmpCoalescedOperations)
-                {
-                    dispatch_async(dispatch_get_main_queue(), ^{
-                        if(self.completionBlock)
-                            self.completionBlock(tmpCoalescedOperations,error);
-                    });
-                }
-                else
-                {
-                    [_coalescedOperations addObjectsFromArray:tmpCoalescedOperations];
-                }
-            }
-            else
-            {
-                NSArray *tmpCoalescedOperations = [NSArray arrayWithArray:_coalescedOperations];
-                [_coalescedOperations removeAllObjects];
-                
-                dispatch_async(dispatch_get_main_queue(), ^{
-                    if(self.completionBlock)
-                        self.completionBlock(tmpCoalescedOperations,nil);
-                });
-            }
+                [self doConsumerWork];
+            });
         }
     });
 }
 
+-(void)doConsumerWork // must be executed on _eventInterpreterConsumerDispatchQueue queue
+{
+    NSArray *operationsToCoalesce = nil;
+    
+    @synchronized(_operationsBuffer)
+    {
+        operationsToCoalesce = [NSArray arrayWithArray:_operationsBuffer];
+        [_operationsBuffer removeAllObjects];
+    }
+    
+    NSError *error;
+    NSArray *tmpCoalescedOperations = operationsToCoalesce;
+    
+#if USE_COALESCING
+    if([operationsToCoalesce count] > 1)
+    {
+        tmpCoalescedOperations = [self coalesceOperations:operationsToCoalesce error:&error];
+    }
+#endif
+    
+    if(!tmpCoalescedOperations)
+    {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            if(self.completionBlock)
+                self.completionBlock(tmpCoalescedOperations,error);
+        });
+    }
+    else
+    {
+        [_coalescedOperations addObjectsFromArray:tmpCoalescedOperations];
+        NSArray *finalizedOperations = [NSArray arrayWithArray:_coalescedOperations];
+        [_coalescedOperations removeAllObjects];
+        
+        dispatch_async(dispatch_get_main_queue(), ^{
+            if(self.completionBlock)
+                self.completionBlock(finalizedOperations,nil);
+        });
+    }
+}
+
+#pragma mark - Coalescing
+
 -(NSArray *)coalesceOperations:(NSArray*)fsOperations error:(NSError**)error
 {
     NSMutableArray *coalescedOperations = [NSMutableArray array];
+    NSMutableSet *consumedOperations = [NSMutableSet set];
     
     NSUInteger i = 0;
     for(SCFileSystemOperation *op in fsOperations)
     {
-        NSUInteger cIndex = i;
-
-        SCFileSystemOperation *coalescedOperation = op;
-        SCFileSystemOperation *sourceOp = nil;
-        do
+        if(![consumedOperations containsObject:op])
         {
-            sourceOp = coalescedOperation;
-            // find other operations acting *on the same path* that is either a create rename, move, or delete  so that we drop this "furtive" create operation
-            coalescedOperation = [self coalescedOperationForOperation:sourceOp followingOperations:[fsOperations  subarrayWithRange:NSMakeRange(cIndex+1, [fsOperations count]-cIndex)] index:&cIndex];
-        }
-        while(sourceOp != coalescedOperation);
-
-        
-        if(coalescedOperation != op)
-        {
-            // op has been coalesced. But we have to RE interpret again:
-            if(([op operationType] & SCFileSystemOperationCreate) > 0)
+            SCFileSystemOperation *coalescedOperation = op;
+            SCFileSystemOperation *sourceOp = nil;
+            do
             {
-                SCFileSystemOperation *definitiveOp = [[SCFileSystemOperation alloc] initWithOldPath:nil path:coalescedOperation.path operationType:[self operationTypeFromSourceOperationType:[op operationType] lastOperationType:[coalescedOperation operationType]]];
-                [coalescedOperations addObject:definitiveOp];
+                sourceOp = coalescedOperation;
+                // find other operations acting *on the same path* that is either a create rename, move, or delete  so that we drop this "furtive" create operation
+                coalescedOperation = [self coalescedOperationForOperation:sourceOp followingOperations:[fsOperations  subarrayWithRange:NSMakeRange(i+1, [fsOperations count]-(i+1))] consumedOperations:consumedOperations];
             }
-        }
-        else
-        {
-            // we can't coalesce this operation, so add it to the returned array
-            [coalescedOperations addObject:op];
+            while(sourceOp != coalescedOperation);
+            
+            
+            if(coalescedOperation != op)
+            {
+                // op has been coalesced. But we have to RE interpret again:
+                SCFileSystemOperation *finalizedOp = [self finalizedOperationFromSourceOperation:op coalescedOperation:coalescedOperation];
+                [coalescedOperations addObject:finalizedOp];
+            }
+            else
+            {
+                // we can't coalesce this operation, so add it to the returned array
+                [coalescedOperations addObject:op];
+            }
         }
         
         i++;
     }
     
     
-    return fsOperations;
+    return coalescedOperations;
 }
 
 // returns sourceOp if it is not coalescable
 // returns another operation if it has been coalesced. You should recursively call this method while the returned operation is not sourceOp
--(SCFileSystemOperation *)coalescedOperationForOperation:(SCFileSystemOperation*)sourceOp followingOperations:(NSArray*)fsOperations index:(NSUInteger*)index
+-(SCFileSystemOperation *)coalescedOperationForOperation:(SCFileSystemOperation*)sourceOp followingOperations:(NSArray*)fsOperations consumedOperations:(NSMutableSet*)consumedOperations
 {
     SCFileSystemOperation *coalescedOperation = sourceOp;
     
-    NSUInteger i = 0;
-    if(([sourceOp operationType] & SCFileSystemOperationCreate) != 0)
+    for(SCFileSystemOperation *followingOp in fsOperations)
     {
-        for(SCFileSystemOperation *followingOp in fsOperations)
+        if(![consumedOperations containsObject:followingOp])
         {
             if([[followingOp oldPath] isEqualToString:[sourceOp path]] || [[followingOp path] isEqualToString:[sourceOp path]] || [[followingOp oldPath] isEqualToString:[sourceOp oldPath]] || [[followingOp path] isEqualToString:[sourceOp oldPath]])
             {
                 // followingOp targets sourceOp file!
                 coalescedOperation = [[SCFileSystemOperation alloc] initWithOldPath:[sourceOp path] path:[followingOp path] operationType:followingOp.operationType];
+                [consumedOperations addObject:followingOp]; // the followingOperation has been consumed so add it to the shared set
                 break;
             }
         }
-        
-        i++;
     }
     
-    *index = i;
     return coalescedOperation;
 }
 
--(SCFileSystemOperationType)operationTypeFromSourceOperationType:(SCFileSystemOperationType)sourceType lastOperationType:(SCFileSystemOperationType)lastType
+-(SCFileSystemOperation*)finalizedOperationFromSourceOperation:(SCFileSystemOperation*)sourceOperation coalescedOperation:(SCFileSystemOperation*)lastOperation
 {
+    SCFileSystemOperation *finalizedOperation = nil;
+    NSString *finalizedPath = nil;
+    NSString *finalizedOldPath = nil;
+    SCFileSystemOperationType finalizedOperationType = SCFileSystemOperationUnknown;
+    
+    SCFileSystemOperationType sourceType = [sourceOperation operationType];
+    SCFileSystemOperationType lastType = [lastOperation operationType];
+    
     if((sourceType & SCFileSystemOperationCreate) != 0)
     {
-        
         // if it was a create, then it stays a create in many case, except if trashed, deleted or moveoutgoing!
         // create + (rename) + movewithin => create to the movewithin target path
         // create + (rename) + trashed + moveincoming => the source file is fugitive but has been replaced by a new incoming file => create with moveincoming path (and new file name)
@@ -443,13 +468,21 @@ typedef void (^SCEventInterpreterCompletionBlock_block_t)(NSArray *fileOperation
            (lastType & SCFileSystemOperationDelete) != 0         ||
            (lastType & SCFileSystemOperationMoveOutgoing) != 0)
         {
-            return lastType;
+            finalizedOperationType = lastType;
+            finalizedOldPath = sourceOperation.path;
+            finalizedPath = lastOperation.path;
         }
-        
-        return sourceType;
+        else
+        {
+            finalizedOperationType = sourceType;
+            finalizedOldPath = nil;
+            finalizedPath = lastOperation.path;
+        }
     }
     
-    return sourceType;
+    finalizedOperation = [[SCFileSystemOperation alloc] initWithOldPath:finalizedOldPath path:finalizedPath operationType:finalizedOperationType];
+    
+    return finalizedOperation;
 }
 
 @end

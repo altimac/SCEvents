@@ -83,7 +83,7 @@
 @property (readwrite, assign, getter=ignoreEventsFromSubDirs, setter=setIgnoreEventsFromSubDirs:) BOOL _ignoreEventsFromSubDirs;
 
 /**
- * @property _createFags Indicates flags that were used to create the stream. Defaults to kFSEventStreamCreateFlagNone
+ * @property _createFags Indicates flags that were used to create the stream. Defaults to kFSEventStreamCreateFlagNone. Not available until the stream is created internally!
  */
 @property (readonly, assign, getter=createFlags) FSEventStreamCreateFlags _createFlags;
 

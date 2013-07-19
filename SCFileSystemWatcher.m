@@ -37,6 +37,8 @@
  */
 @interface SCFileSystemWatcher ()
 
+@property (readwrite, assign, getter=createFlags, setter=setCreateFlags:) FSEventStreamCreateFlags _createFlags;
+
 static FSEventStreamRef create_events_stream(SCFileSystemWatcher *watcher,
 											  CFArrayRef paths,
                                               FSEventStreamCreateFlags createFlags,
@@ -245,13 +247,16 @@ static FSEventStreamRef create_events_stream(SCFileSystemWatcher *watcher, CFArr
 	callbackInfo.release = NULL;
 	callbackInfo.copyDescription = NULL;
     
+    FSEventStreamCreateFlags fixedFlags = createFlags | kFSEventStreamCreateFlagUseCFTypes; // always add kFSEventStreamCreateFlagUseCFTypes
+    [watcher setCreateFlags:fixedFlags];
+    
     return FSEventStreamCreate(kCFAllocatorDefault, 
 							   &events_callback,
 							   &callbackInfo, 
 							   paths, 
 							   sinceWhen, 
 							   latency, 
-							   createFlags | kFSEventStreamCreateFlagUseCFTypes); // always add kFSEventStreamCreateFlagUseCFTypes
+							   fixedFlags);
 }
 
 /**
@@ -282,6 +287,7 @@ static void events_callback(ConstFSEventStreamRef streamRef,
     SCFileSystemWatcher *pathWatcher = (__bridge SCFileSystemWatcher *)clientCallBackInfo;
     
     NSMutableArray *batchedEvents = [NSMutableArray arrayWithCapacity:numEvents];
+    FSEventStreamCreateFlags createFlags = [pathWatcher createFlags];
     
     for (i = 0; i < numEvents; i++) 
 	{
@@ -327,7 +333,15 @@ static void events_callback(ConstFSEventStreamRef streamRef,
 //			// If present remove the path's trailing slash
 //			eventPath = _strip_trailing_slash(eventPath);
             
-            SCEvent *event = [SCEvent eventWithEventId:(NSUInteger)eventIds[i] eventDate:[NSDate date] eventPath:(__bridge NSString *)eventPath eventFlags:(FSEventStreamEventFlags)eventFlags[i]];
+            // Apple introduced a bug in FSEventStreamEventFlags. Some bit may be set (the File flags in particular) even if we don't request the kFSEventStreamEventFlagItemCreated when creating the stream!
+            // This introduce a bug in our logging system, so we have to mask the FSEventStreamEventFlags to zero most bits excepts the real ones!
+            FSEventStreamEventFlags eventFlag = eventFlags[i];
+            if(createFlags < kFSEventStreamEventFlagItemCreated)
+            {
+                eventFlag = (eventFlags[i] & 0x000000FF);
+            }
+            
+            SCEvent *event = [SCEvent eventWithEventId:(NSUInteger)eventIds[i] eventDate:[NSDate date] eventPath:(__bridge NSString *)eventPath eventFlags:eventFlag];
 			[batchedEvents addObject:event];
             
             if([[pathWatcher delegate] respondsToSelector:@selector(pathWatcher:eventOccurred:)])

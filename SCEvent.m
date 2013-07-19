@@ -126,56 +126,56 @@ NSString *flagsStringForFlags(FSEventStreamEventFlags flags)
 {
     NSMutableString *string = [NSMutableString string];
     
-    if(flags & kFSEventStreamEventFlagMustScanSubDirs)
+    if((flags & kFSEventStreamEventFlagMustScanSubDirs) != 0)
         [string appendString:@"|kFSEventStreamEventFlagMustScanSubDirs"];
-    if(flags & kFSEventStreamEventFlagUserDropped)
+    if((flags & kFSEventStreamEventFlagUserDropped) != 0)
         [string appendString:@"|kFSEventStreamEventFlagUserDropped"];
-    if(flags & kFSEventStreamEventFlagKernelDropped)
+    if((flags & kFSEventStreamEventFlagKernelDropped) != 0)
         [string appendString:@"|kFSEventStreamEventFlagKernelDropped"];
     
-    if(flags & kFSEventStreamEventFlagEventIdsWrapped)
+    if((flags & kFSEventStreamEventFlagEventIdsWrapped) != 0)
         [string appendString:@"|kFSEventStreamEventFlagEventIdsWrapped"];
     
-    if(flags & kFSEventStreamEventFlagHistoryDone)
+    if((flags & kFSEventStreamEventFlagHistoryDone) != 0)
         [string appendString:@"|kFSEventStreamEventFlagHistoryDone"];
     
-    if(flags & kFSEventStreamEventFlagRootChanged)
+    if((flags & kFSEventStreamEventFlagRootChanged) != 0)
         [string appendString:@"|kFSEventStreamEventFlagRootChanged"];
     
     
     
     
-    if(flags & kFSEventStreamEventFlagItemCreated)
+    if(flags & (kFSEventStreamEventFlagItemCreated != 0))
         [string appendString:@"|kFSEventStreamEventFlagItemCreated"];
     
-    if(flags & kFSEventStreamEventFlagItemRemoved)
+    if((flags & kFSEventStreamEventFlagItemRemoved) != 0)
         [string appendString:@"|kFSEventStreamEventFlagItemRemoved"];
     
-    if(flags & kFSEventStreamEventFlagItemInodeMetaMod)
+    if(flags & (kFSEventStreamEventFlagItemInodeMetaMod != 0))
         [string appendString:@"|kFSEventStreamEventFlagItemInodeMetaMod"];
     
-    if(flags & kFSEventStreamEventFlagItemRenamed)
+    if((flags & kFSEventStreamEventFlagItemRenamed) != 0)
         [string appendString:@"|kFSEventStreamEventFlagItemRenamed"];
     
-    if(flags & kFSEventStreamEventFlagItemModified)
+    if((flags & kFSEventStreamEventFlagItemModified) != 0)
         [string appendString:@"|kFSEventStreamEventFlagItemModified"];
     
-    if(flags & kFSEventStreamEventFlagItemFinderInfoMod)
+    if((flags & kFSEventStreamEventFlagItemFinderInfoMod) != 0)
         [string appendString:@"|kFSEventStreamEventFlagItemFinderInfoMod"];
     
-    if(flags & kFSEventStreamEventFlagItemChangeOwner)
+    if((flags & kFSEventStreamEventFlagItemChangeOwner) != 0)
         [string appendString:@"|kFSEventStreamEventFlagItemChangeOwner"];
     
-    if(flags & kFSEventStreamEventFlagItemXattrMod)
+    if((flags & kFSEventStreamEventFlagItemXattrMod) != 0)
         [string appendString:@"|kFSEventStreamEventFlagItemXattrMod"];
     
-    if(flags & kFSEventStreamEventFlagItemIsFile)
+    if((flags & kFSEventStreamEventFlagItemIsFile) != 0)
         [string appendString:@"|kFSEventStreamEventFlagItemIsFile"];
     
-    if(flags & kFSEventStreamEventFlagItemIsDir)
+    if((flags & kFSEventStreamEventFlagItemIsDir) != 0)
         [string appendString:@"|kFSEventStreamEventFlagItemIsDir"];
     
-    if(flags & kFSEventStreamEventFlagItemIsSymlink)
+    if((flags & kFSEventStreamEventFlagItemIsSymlink) != 0)
         [string appendString:@"|kFSEventStreamEventFlagItemIsSymlink"];
     
     
