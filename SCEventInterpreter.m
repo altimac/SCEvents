@@ -361,7 +361,95 @@ typedef void (^SCEventInterpreterCompletionBlock_block_t)(NSArray *fileOperation
 
 -(NSArray *)coalesceOperations:(NSArray*)fsOperations error:(NSError**)error
 {
+    NSMutableArray *coalescedOperations = [NSMutableArray array];
+    
+    NSUInteger i = 0;
+    for(SCFileSystemOperation *op in fsOperations)
+    {
+        NSUInteger cIndex = i;
+
+        SCFileSystemOperation *coalescedOperation = op;
+        SCFileSystemOperation *sourceOp = nil;
+        do
+        {
+            sourceOp = coalescedOperation;
+            // find other operations acting *on the same path* that is either a create rename, move, or delete  so that we drop this "furtive" create operation
+            coalescedOperation = [self coalescedOperationForOperation:sourceOp followingOperations:[fsOperations  subarrayWithRange:NSMakeRange(cIndex+1, [fsOperations count]-cIndex)] index:&cIndex];
+        }
+        while(sourceOp != coalescedOperation);
+
+        
+        if(coalescedOperation != op)
+        {
+            // op has been coalesced. But we have to RE interpret again:
+            if(([op operationType] & SCFileSystemOperationCreate) > 0)
+            {
+                SCFileSystemOperation *definitiveOp = [[SCFileSystemOperation alloc] initWithOldPath:nil path:coalescedOperation.path operationType:[self operationTypeFromSourceOperationType:[op operationType] lastOperationType:[coalescedOperation operationType]]];
+                [coalescedOperations addObject:definitiveOp];
+            }
+        }
+        else
+        {
+            // we can't coalesce this operation, so add it to the returned array
+            [coalescedOperations addObject:op];
+        }
+        
+        i++;
+    }
+    
+    
     return fsOperations;
+}
+
+// returns sourceOp if it is not coalescable
+// returns another operation if it has been coalesced. You should recursively call this method while the returned operation is not sourceOp
+-(SCFileSystemOperation *)coalescedOperationForOperation:(SCFileSystemOperation*)sourceOp followingOperations:(NSArray*)fsOperations index:(NSUInteger*)index
+{
+    SCFileSystemOperation *coalescedOperation = sourceOp;
+    
+    NSUInteger i = 0;
+    if(([sourceOp operationType] & SCFileSystemOperationCreate) != 0)
+    {
+        for(SCFileSystemOperation *followingOp in fsOperations)
+        {
+            if([[followingOp oldPath] isEqualToString:[sourceOp path]] || [[followingOp path] isEqualToString:[sourceOp path]] || [[followingOp oldPath] isEqualToString:[sourceOp oldPath]] || [[followingOp path] isEqualToString:[sourceOp oldPath]])
+            {
+                // followingOp targets sourceOp file!
+                coalescedOperation = [[SCFileSystemOperation alloc] initWithOldPath:[sourceOp path] path:[followingOp path] operationType:followingOp.operationType];
+                break;
+            }
+        }
+        
+        i++;
+    }
+    
+    *index = i;
+    return coalescedOperation;
+}
+
+-(SCFileSystemOperationType)operationTypeFromSourceOperationType:(SCFileSystemOperationType)sourceType lastOperationType:(SCFileSystemOperationType)lastType
+{
+    if((sourceType & SCFileSystemOperationCreate) != 0)
+    {
+        
+        // if it was a create, then it stays a create in many case, except if trashed, deleted or moveoutgoing!
+        // create + (rename) + movewithin => create to the movewithin target path
+        // create + (rename) + trashed + moveincoming => the source file is fugitive but has been replaced by a new incoming file => create with moveincoming path (and new file name)
+        // create + (rename) + movewithin + trashed => trashed
+        // create + (rename) + movewithin + trashed + deleted => deleted
+        // create + (rename) + moveoutgoing => moveoutgoing
+        
+        if((lastType & SCFileSystemOperationMoveToTrash) != 0    ||
+           (lastType & SCFileSystemOperationDelete) != 0         ||
+           (lastType & SCFileSystemOperationMoveOutgoing) != 0)
+        {
+            return lastType;
+        }
+        
+        return sourceType;
+    }
+    
+    return sourceType;
 }
 
 @end
