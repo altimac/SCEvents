@@ -1,12 +1,21 @@
 Mods made to mz2's original code:
 
+GOALS :
+
+Implement a higher FSOperation object that simply states, by file if it is a create, rename, move (move within, move outside, move inside of watched path), trash, delete or edit.
+Pretty easy with low level file system operations done with CLI.
+Much more difficult with high level NSDocument save of even user (via Finder) FS modifications.
+
+CHANGES :
+
 - removed custom SCEventStreamEventFlags to use FSEvent's standard constants. (they were redefined with the same values, but incomplete since 10.7 and I prepare for the future)
 - I'm willing to be compatibble with the new (10.7+) kFSEventStreamCreateFlagFileEvents flag to get _file_ events instead of _directory_ events 
 - optimized code (NSSet vs NSArray, and misuse of conformsToProtocol: method). This is a required protocol method so compiler checked the conformance for us...
 - You now have to pass some flags (or 0) to the startWatchingPaths:... methods
 in order to modify the way the stream is created.
+- Added an SCEvent interpreter + SCFileSystemOperation object to interpret stream of events and generate higher level objects that describes what is happening on disk.
 
-- Bugs :
+BUGS :
 - It happens sometimes, that using the Finder only, not the CLI. Creating a new file (not folder) by copying in the watched paths generates a "Create" FS operation twice. I still can't find a way to fix that.
 - The Cocoa atomic way of saving NSDocuments is a real pain in the ass for low level file watcher. Many files are created on disk and generates noisy events such as :
 "/Users/aure/FSEventsTests/screen_express.png.sb-aea45de4-lDI8sH.sb-aea45de4-KiYT7z" then
