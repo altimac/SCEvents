@@ -14,6 +14,14 @@
 		C41589AF1796E95100013AC7 /* SCEvent.m in Sources */ = {isa = PBXBuildFile; fileRef = C41589AB1796E95100013AC7 /* SCEvent.m */; };
 		C41589B01796E95100013AC7 /* SCFileSystemWatcher.m in Sources */ = {isa = PBXBuildFile; fileRef = C41589AE1796E95100013AC7 /* SCFileSystemWatcher.m */; };
 		C430C7220F682C460064A6D6 /* FSEventsTestController.m in Sources */ = {isa = PBXBuildFile; fileRef = C430C7200F682C460064A6D6 /* FSEventsTestController.m */; };
+		C4DC210117B50C1A00079923 /* CoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C4DC210017B50C1A00079923 /* CoreServices.framework */; };
+		C4DC210317B50C1A00079923 /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C4DC210217B50C1A00079923 /* CoreFoundation.framework */; };
+		C4DC210517B50C1A00079923 /* CoreData.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C4DC210417B50C1A00079923 /* CoreData.framework */; };
+		C4DC210717B50C1A00079923 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C4DC210617B50C1A00079923 /* Foundation.framework */; };
+		C4DC210D17B50C1A00079923 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = C4DC210B17B50C1A00079923 /* InfoPlist.strings */; };
+		C4DC210F17B50C1A00079923 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = C4DC210E17B50C1A00079923 /* main.c */; };
+		C4DC211117B50C1A00079923 /* GetMetadataForFile.m in Sources */ = {isa = PBXBuildFile; fileRef = C4DC211017B50C1A00079923 /* GetMetadataForFile.m */; };
+		C4DC211417B50C1A00079923 /* MySpotlightImporter.m in Sources */ = {isa = PBXBuildFile; fileRef = C4DC211317B50C1A00079923 /* MySpotlightImporter.m */; };
 		C4DDF03D179722F900CEF456 /* SCEventInterpreter.m in Sources */ = {isa = PBXBuildFile; fileRef = C4DDF03C179722F900CEF456 /* SCEventInterpreter.m */; };
 		C4DDF03E179740B100CEF456 /* SCFileSystemOperation.m in Sources */ = {isa = PBXBuildFile; fileRef = C4DDF03A179722DD00CEF456 /* SCFileSystemOperation.m */; };
 /* End PBXBuildFile section */
@@ -36,6 +44,19 @@
 		C41589AE1796E95100013AC7 /* SCFileSystemWatcher.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = SCFileSystemWatcher.m; path = ../SCFileSystemWatcher.m; sourceTree = "<group>"; };
 		C430C7200F682C460064A6D6 /* FSEventsTestController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FSEventsTestController.m; sourceTree = "<group>"; };
 		C430C7210F682C460064A6D6 /* FSEventsTestController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FSEventsTestController.h; sourceTree = "<group>"; };
+		C4DC20FF17B50C1A00079923 /* spot.mdimporter */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = spot.mdimporter; sourceTree = BUILT_PRODUCTS_DIR; };
+		C4DC210017B50C1A00079923 /* CoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreServices.framework; path = System/Library/Frameworks/CoreServices.framework; sourceTree = SDKROOT; };
+		C4DC210217B50C1A00079923 /* CoreFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreFoundation.framework; path = System/Library/Frameworks/CoreFoundation.framework; sourceTree = SDKROOT; };
+		C4DC210417B50C1A00079923 /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = System/Library/Frameworks/CoreData.framework; sourceTree = SDKROOT; };
+		C4DC210617B50C1A00079923 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
+		C4DC210A17B50C1A00079923 /* spot-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "spot-Info.plist"; sourceTree = "<group>"; };
+		C4DC210C17B50C1A00079923 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		C4DC210E17B50C1A00079923 /* main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
+		C4DC211017B50C1A00079923 /* GetMetadataForFile.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = GetMetadataForFile.m; sourceTree = "<group>"; };
+		C4DC211217B50C1A00079923 /* MySpotlightImporter.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MySpotlightImporter.h; sourceTree = "<group>"; };
+		C4DC211317B50C1A00079923 /* MySpotlightImporter.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MySpotlightImporter.m; sourceTree = "<group>"; };
+		C4DC211517B50C1A00079923 /* Importer Read Me.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "Importer Read Me.txt"; sourceTree = "<group>"; };
+		C4DC211617B50C1A00079923 /* spot-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "spot-Prefix.pch"; sourceTree = "<group>"; };
 		C4DDF039179722DD00CEF456 /* SCFileSystemOperation.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = SCFileSystemOperation.h; path = ../SCFileSystemOperation.h; sourceTree = "<group>"; };
 		C4DDF03A179722DD00CEF456 /* SCFileSystemOperation.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = SCFileSystemOperation.m; path = ../SCFileSystemOperation.m; sourceTree = "<group>"; };
 		C4DDF03B179722F900CEF456 /* SCEventInterpreter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SCEventInterpreter.h; path = ../SCEventInterpreter.h; sourceTree = "<group>"; };
@@ -48,6 +69,17 @@
 			buildActionMask = 2147483647;
 			files = (
 				8D11072F0486CEB800E47090 /* Cocoa.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C4DC20FC17B50C1A00079923 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C4DC210117B50C1A00079923 /* CoreServices.framework in Frameworks */,
+				C4DC210317B50C1A00079923 /* CoreFoundation.framework in Frameworks */,
+				C4DC210517B50C1A00079923 /* CoreData.framework in Frameworks */,
+				C4DC210717B50C1A00079923 /* Foundation.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -92,6 +124,7 @@
 			isa = PBXGroup;
 			children = (
 				8D1107320486CEB800E47090 /* fseventsTest.app */,
+				C4DC20FF17B50C1A00079923 /* spot.mdimporter */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -102,6 +135,7 @@
 				080E96DDFE201D6D7F000001 /* Classes */,
 				29B97315FDCFA39411CA2CEA /* Other Sources */,
 				29B97317FDCFA39411CA2CEA /* Resources */,
+				C4DC210817B50C1A00079923 /* spot */,
 				29B97323FDCFA39411CA2CEA /* Frameworks */,
 				19C28FACFE9D520D11CA2CBB /* Products */,
 				C430C7200F682C460064A6D6 /* FSEventsTestController.m */,
@@ -133,9 +167,36 @@
 			isa = PBXGroup;
 			children = (
 				1058C7A0FEA54F0111CA2CBB /* Linked Frameworks */,
+				C4DC210017B50C1A00079923 /* CoreServices.framework */,
+				C4DC210217B50C1A00079923 /* CoreFoundation.framework */,
+				C4DC210417B50C1A00079923 /* CoreData.framework */,
+				C4DC210617B50C1A00079923 /* Foundation.framework */,
 				1058C7A2FEA54F0111CA2CBB /* Other Frameworks */,
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		C4DC210817B50C1A00079923 /* spot */ = {
+			isa = PBXGroup;
+			children = (
+				C4DC211017B50C1A00079923 /* GetMetadataForFile.m */,
+				C4DC211217B50C1A00079923 /* MySpotlightImporter.h */,
+				C4DC211317B50C1A00079923 /* MySpotlightImporter.m */,
+				C4DC211517B50C1A00079923 /* Importer Read Me.txt */,
+				C4DC210917B50C1A00079923 /* Supporting Files */,
+			);
+			path = spot;
+			sourceTree = "<group>";
+		};
+		C4DC210917B50C1A00079923 /* Supporting Files */ = {
+			isa = PBXGroup;
+			children = (
+				C4DC210A17B50C1A00079923 /* spot-Info.plist */,
+				C4DC210B17B50C1A00079923 /* InfoPlist.strings */,
+				C4DC210E17B50C1A00079923 /* main.c */,
+				C4DC211617B50C1A00079923 /* spot-Prefix.pch */,
+			);
+			name = "Supporting Files";
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -159,13 +220,28 @@
 			productReference = 8D1107320486CEB800E47090 /* fseventsTest.app */;
 			productType = "com.apple.product-type.application";
 		};
+		C4DC20FE17B50C1A00079923 /* spot */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C4DC211917B50C1A00079923 /* Build configuration list for PBXNativeTarget "spot" */;
+			buildPhases = (
+				C4DC20FB17B50C1A00079923 /* Sources */,
+				C4DC20FC17B50C1A00079923 /* Frameworks */,
+				C4DC20FD17B50C1A00079923 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = spot;
+			productName = spot;
+			productReference = C4DC20FF17B50C1A00079923 /* spot.mdimporter */;
+			productType = "com.apple.product-type.bundle";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
 		29B97313FDCFA39411CA2CEA /* Project object */ = {
 			isa = PBXProject;
-			attributes = {
-			};
 			buildConfigurationList = C01FCF4E08A954540054247B /* Build configuration list for PBXProject "FSEventsTest" */;
 			compatibilityVersion = "Xcode 3.1";
 			developmentRegion = English;
@@ -178,6 +254,7 @@
 			projectRoot = "";
 			targets = (
 				8D1107260486CEB800E47090 /* FSEventsTest */,
+				C4DC20FE17B50C1A00079923 /* spot */,
 			);
 		};
 /* End PBXProject section */
@@ -189,6 +266,14 @@
 			files = (
 				8D11072B0486CEB800E47090 /* InfoPlist.strings in Resources */,
 				1DDD58160DA1D0A300B32029 /* MainMenu.xib in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C4DC20FD17B50C1A00079923 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C4DC210D17B50C1A00079923 /* InfoPlist.strings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -205,6 +290,16 @@
 				C41589AF1796E95100013AC7 /* SCEvent.m in Sources */,
 				C4DDF03E179740B100CEF456 /* SCFileSystemOperation.m in Sources */,
 				C430C7220F682C460064A6D6 /* FSEventsTestController.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C4DC20FB17B50C1A00079923 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C4DC210F17B50C1A00079923 /* main.c in Sources */,
+				C4DC211117B50C1A00079923 /* GetMetadataForFile.m in Sources */,
+				C4DC211417B50C1A00079923 /* MySpotlightImporter.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -225,6 +320,14 @@
 				1DDD58150DA1D0A300B32029 /* English */,
 			);
 			name = MainMenu.xib;
+			sourceTree = "<group>";
+		};
+		C4DC210B17B50C1A00079923 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				C4DC210C17B50C1A00079923 /* en */,
+			);
+			name = InfoPlist.strings;
 			sourceTree = "<group>";
 		};
 /* End PBXVariantGroup section */
@@ -291,6 +394,73 @@
 			};
 			name = Release;
 		};
+		C4DC211717B50C1A00079923 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COMBINE_HIDPI_IMAGES = YES;
+				COPY_PHASE_STRIP = NO;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "spot/spot-Prefix.pch";
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				INFOPLIST_FILE = "spot/spot-Info.plist";
+				INSTALL_PATH = "@executable_path/../Contents/Library/Spotlight";
+				LIBRARY_STYLE = BUNDLE;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+				WRAPPER_EXTENSION = mdimporter;
+			};
+			name = Debug;
+		};
+		C4DC211817B50C1A00079923 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COMBINE_HIDPI_IMAGES = YES;
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "spot/spot-Prefix.pch";
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				INFOPLIST_FILE = "spot/spot-Info.plist";
+				INSTALL_PATH = "@executable_path/../Contents/Library/Spotlight";
+				LIBRARY_STYLE = BUNDLE;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+				WRAPPER_EXTENSION = mdimporter;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -311,6 +481,14 @@
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
+		};
+		C4DC211917B50C1A00079923 /* Build configuration list for PBXNativeTarget "spot" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C4DC211717B50C1A00079923 /* Debug */,
+				C4DC211817B50C1A00079923 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
 		};
 /* End XCConfigurationList section */
 	};

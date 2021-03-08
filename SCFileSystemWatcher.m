@@ -127,7 +127,7 @@ static void events_callback(ConstFSEventStreamRef streamRef,
     return YES;
 }
 
-- (BOOL)startWatchingPaths:(NSArray *)paths flags:(FSEventStreamCreateFlags)createFlags since:(FSEventStreamEventId)sinceWhen; //0 means from the begining of time. Typically pass the last eventEvent eventId or kFSEventStreamEventIdSinceNow
+- (BOOL)startWatchingPaths:(NSArray *)paths flags:(FSEventStreamCreateFlags)createFlags since :(FSEventStreamEventId)sinceWhen; //0 means from the begining of time. Typically pass the last eventEvent eventId or kFSEventStreamEventIdSinceNow
 {
     return [self startWatchingPaths:paths flags:createFlags since:sinceWhen onRunLoop:[NSRunLoop currentRunLoop]];
 }

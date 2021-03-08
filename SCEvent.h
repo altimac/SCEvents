@@ -84,4 +84,10 @@
 			eventPath:(NSString *)path 
 			eventFlags:(FSEventStreamEventFlags)flags;
 
+// 2 SCEvent are considered equals if their eventPath is the same. Does not compare eventId nor eventDate!!!
+// this allows coalescing of successive SCEvent on the same file/folder.
+-(BOOL)isEqual:(id)anObject;
+-(BOOL)isEqualToEvent:(SCEvent*)aEvent;
+-(NSUInteger)hash;
+
 @end

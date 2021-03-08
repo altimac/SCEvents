@@ -122,6 +122,32 @@
 			(flagsStringForFlags(_eventFlags))];
 }
 
+-(BOOL)isEqual:(id)anObject {
+	if (anObject == self)
+		return YES;
+	
+    if (!anObject || ![anObject isKindOfClass:[self class]])
+		return NO;
+	
+    return [self isEqualToEvent:anObject];
+}
+
+-(BOOL)isEqualToEvent:(SCEvent*)aEvent {
+	if (aEvent == self)
+		return YES;
+	   
+	if ((_eventPath != nil && ![_eventPath isEqual:[aEvent eventPath]]) || (_eventPath == nil && [aEvent eventPath] != nil))
+        return NO;
+		
+    return YES;
+}
+
+-(NSUInteger)hash {
+	return [_eventPath hash];
+}
+
+
+
 NSString *flagsStringForFlags(FSEventStreamEventFlags flags)
 {
     NSMutableString *string = [NSMutableString string];
@@ -186,7 +212,5 @@ NSString *flagsStringForFlags(FSEventStreamEventFlags flags)
     
     return string;
 }
-
-#pragma mark -
 
 @end
